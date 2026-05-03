@@ -618,7 +618,8 @@ function App() {
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || "ElevenLabs preview failed.");
+        const detail = [payload.error, payload.code, payload.recovery].filter(Boolean).join(" ");
+        throw new Error(detail || "ElevenLabs preview failed.");
       }
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);

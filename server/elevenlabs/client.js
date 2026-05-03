@@ -9,6 +9,43 @@ function cleanId(value, fallback) {
   return clean || fallback;
 }
 
+function parseProviderError(detail) {
+  if (!detail) return {};
+  try {
+    const parsed = JSON.parse(detail);
+    return parsed?.detail && typeof parsed.detail === "object" ? parsed.detail : parsed;
+  } catch {
+    return {};
+  }
+}
+
+function classifyProviderError(response, detail) {
+  const provider = parseProviderError(detail);
+  const providerStatus = String(provider.status || "").trim();
+  const message = String(provider.message || "").trim();
+  const error = new Error(`ElevenLabs TTS failed with HTTP ${response.status}.`);
+  error.statusCode = response.status;
+  error.detail = detail.slice(0, 500);
+  error.providerStatus = providerStatus || undefined;
+  error.providerMessage = message || undefined;
+
+  if (providerStatus === "detected_unusual_activity") {
+    error.code = "elevenlabs_cloud_blocked_by_provider";
+    error.recovery = "ElevenLabs accepted the key locally, but blocked this runtime. Use local JARVIS or move the ElevenLabs account to a plan/runtime allowed by ElevenLabs.";
+    return error;
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    error.code = "elevenlabs_auth_or_plan_blocked";
+    error.recovery = "Check the ElevenLabs key, account plan, and provider-side runtime restrictions.";
+    return error;
+  }
+
+  error.code = "elevenlabs_provider_error";
+  error.recovery = "Retry later or check ElevenLabs service/account status.";
+  return error;
+}
+
 export function createElevenLabsClient({ env = process.env, fetchImpl = fetch } = {}) {
   let apiKey = String(env.ELEVENLABS_API_KEY || "").trim();
   let voiceId = cleanId(env.ELEVENLABS_VOICE_ID, "JBFqnCBsd6RMkjVDRZzb");
@@ -70,10 +107,7 @@ export function createElevenLabsClient({ env = process.env, fetchImpl = fetch } 
 
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
-      const error = new Error(`ElevenLabs TTS failed with HTTP ${response.status}.`);
-      error.statusCode = response.status;
-      error.detail = detail.slice(0, 500);
-      throw error;
+      throw classifyProviderError(response, detail);
     }
 
     const audio = Buffer.from(await response.arrayBuffer());
@@ -100,4 +134,3 @@ export function createElevenLabsClient({ env = process.env, fetchImpl = fetch } 
     textToSpeech
   };
 }
-

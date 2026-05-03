@@ -4794,6 +4794,9 @@ app.post("/api/jarvis/elevenlabs/tts", ttsLimiter, async (req, res) => {
     res.status(error.statusCode || 500).json({
       ok: false,
       error: error instanceof Error ? error.message : "Could not generate ElevenLabs speech.",
+      code: error.code || undefined,
+      recovery: error.recovery || undefined,
+      provider_status: error.providerStatus || undefined,
       detail: error.detail || undefined,
       status: elevenLabsClient.getStatus()
     });
