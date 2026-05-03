@@ -4,6 +4,12 @@
 data/
 dist/
 node_modules/
+.npm-cache/
+.claude/
+.antigravity/
+.obsidian/
+reports/
+daily_audit_*.md
 npm-debug.log*
 .DS_Store
 .git/

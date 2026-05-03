@@ -4,6 +4,11 @@
 .DS_Store
 .git/
 .webjs_auth/
+.npm-cache/
+.claude/
+.antigravity/
+.obsidian/
+daily_audit_*.md
 Jarvis AI/
 data/
 dist/
