@@ -1,12 +1,12 @@
 .env
 .env.*
 !.env.example
-data/
-dist/
-node_modules/
-npm-debug.log*
 .DS_Store
 .git/
 .webjs_auth/
 Jarvis AI/
+data/
+dist/
 graphify-out/
+node_modules/
+reports/
