@@ -1,3 +1,8 @@
+---
+name: "jervis-ai-console-operator"
+description: "Operate and improve the JERVIS AI Console with risk gates, tool bridge, WhatsApp live mode, Obsidian, Graphify, audit logs, and premium operational UI."
+---
+
 # JERVIS AI Console Operator Skill
 
 ## Purpose
@@ -73,4 +78,3 @@ RISK:
 BROKEN:
 NEXT:
 ```
-
