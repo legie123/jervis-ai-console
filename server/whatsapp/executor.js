@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { WhatsAppCloudApi } from "./client.js";
+import { loadWhatsAppConfig, publicWhatsAppConfigStatus } from "./config.js";
 
 function normalizeEnvFlag(value, fallback = true) {
   const clean = String(value ?? "").trim().toLowerCase();
@@ -18,6 +19,10 @@ function cleanPhone(value) {
   return digits.length >= 6 && digits.length <= 20 ? digits : "";
 }
 
+function isOwnerRecipient(to, ownerPhoneE164) {
+  return Boolean(to && ownerPhoneE164 && cleanPhone(to) === cleanPhone(ownerPhoneE164));
+}
+
 function contactAllowsWhatsapp(contact) {
   return Boolean(contact?.whatsapp_allowed === true || contact?.whatsapp_opted_in === true);
 }
@@ -28,25 +33,25 @@ function executorError(message, statusCode = 400) {
   return error;
 }
 
-export function createWhatsAppExecutor({ env = process.env, fetchImpl = fetch } = {}) {
+export function createWhatsAppExecutor({ env = process.env, config = loadWhatsAppConfig(env), fetchImpl = fetch } = {}) {
   const client = new WhatsAppCloudApi({
-    accessToken: env.WHATSAPP_ACCESS_TOKEN,
-    phoneNumberId: env.WHATSAPP_PHONE_NUMBER_ID,
-    graphVersion: env.WHATSAPP_GRAPH_VERSION || "v25.0",
+    accessToken: config.accessToken,
+    phoneNumberId: config.phoneNumberId,
+    graphVersion: config.graphVersion,
     fetchImpl
   });
 
-  let dryRun = normalizeEnvFlag(env.WHATSAPP_DRY_RUN, true);
+  let dryRun = normalizeEnvFlag(config.dryRun, true);
 
   function getStatus() {
     return {
+      ...publicWhatsAppConfigStatus({ ...config, dryRun, liveSendAllowed: Boolean(config.configured && config.sendEnabled && !dryRun) }),
       executor_attached: true,
       provider: "whatsapp_cloud_api",
       dry_run: dryRun,
       configured: client.isConfigured(),
-      phone_number_id_configured: Boolean(env.WHATSAPP_PHONE_NUMBER_ID),
-      access_token_configured: Boolean(env.WHATSAPP_ACCESS_TOKEN),
-      mode: dryRun ? "dry_run" : client.isConfigured() ? "live" : "blocked_missing_config"
+      phone_number_id_configured: Boolean(config.phoneNumberId),
+      access_token_configured: Boolean(config.accessToken)
     };
   }
 
@@ -75,13 +80,17 @@ export function createWhatsAppExecutor({ env = process.env, fetchImpl = fetch } 
       };
     }
 
+    if (!config.sendEnabled) {
+      throw executorError("WhatsApp live send blocked: WHATSAPP_SEND_ENABLED=true is required.", 409);
+    }
     if (!client.isConfigured()) {
-      throw executorError("WhatsApp live send blocked: WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID are required.", 409);
+      throw executorError("WhatsApp live send blocked: META_WA_ACCESS_TOKEN and META_WA_PHONE_NUMBER_ID are required.", 409);
     }
-    if (!contact) {
-      throw executorError("WhatsApp live send blocked: recipient is not in the contact allowlist.", 409);
+    const ownerRecipient = isOwnerRecipient(to, config.ownerPhoneE164);
+    if (!contact && !ownerRecipient) {
+      throw executorError("WhatsApp live send blocked: recipient is not the configured owner or an allowlisted contact.", 409);
     }
-    if (!contactAllowsWhatsapp(contact)) {
+    if (contact && !contactAllowsWhatsapp(contact) && !ownerRecipient) {
       throw executorError("WhatsApp live send blocked: contact is not opted in for WhatsApp.", 409);
     }
     if (!to) {

@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+data/
+dist/
+node_modules/
+npm-debug.log*
+.DS_Store
+.git/
+.webjs_auth/
+graphify-out/cache/

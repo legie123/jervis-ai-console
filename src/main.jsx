@@ -21,6 +21,13 @@ import {
   Unplug,
   Volume2
 } from "lucide-react";
+import { createAudioReactiveMeter } from "./voice/audioReactive.js";
+import {
+  createJervisVoiceController,
+  JERVIS_GREETING,
+  VOICE_UNAVAILABLE_MESSAGE
+} from "./voice/jervisVoice.js";
+import JervisDragonCore from "./visuals/JervisDragonCore.jsx";
 import "./styles.css";
 
 const OPENAI_REALTIME_CALLS_URL = "https://api.openai.com/v1/realtime/calls";
@@ -40,7 +47,8 @@ const stateCopy = {
   live: "Online",
   muted: "Muted",
   reconnecting: "Recovering",
-  error: "Attention"
+  error: "Attention",
+  voice: "Voice wake"
 };
 
 const quickCommands = [
@@ -158,6 +166,7 @@ function App() {
   const [browserTabQuery, setBrowserTabQuery] = useState("");
   const [browserTabLimit, setBrowserTabLimit] = useState(8);
   const [whatsappDrafts, setWhatsappDrafts] = useState([]);
+  const [whatsappMessages, setWhatsappMessages] = useState({ messages: [], count: 0 });
   const [whatsappExecutor, setWhatsappExecutor] = useState(null);
   const [whatsappLivePhrase, setWhatsappLivePhrase] = useState("");
   const [whatsappModeBusy, setWhatsappModeBusy] = useState(false);
@@ -189,6 +198,13 @@ function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeOpsTab, setActiveOpsTab] = useState("tools");
   const [transcriptOpen, setTranscriptOpen] = useState(false);
+  const [voiceState, setVoiceState] = useState("standby");
+  const [voiceWakeTranscript, setVoiceWakeTranscript] = useState("");
+  const [voiceCommandTranscript, setVoiceCommandTranscript] = useState("");
+  const [voiceResponse, setVoiceResponse] = useState("");
+  const [voiceError, setVoiceError] = useState("");
+  const [voiceVolume, setVoiceVolume] = useState(0);
+  const [voiceSpeakingLevel, setVoiceSpeakingLevel] = useState(0);
 
   const pcRef = useRef(null);
   const dcRef = useRef(null);
@@ -201,10 +217,20 @@ function App() {
   const notifiedAlertKeysRef = useRef(readNotifiedAlertKeys());
   const browserTabFilterRef = useRef({ query: "", limit: 8 });
   const browserTabQueryRef = useRef("");
+  const voiceControllerRef = useRef(null);
+  const audioMeterRef = useRef(null);
+  const speakingMeterRef = useRef(null);
 
   const isLive = status === "live" || status === "muted";
+  const isVoiceActive = ["standbyListeningForWake", "listening", "thinking", "speaking", "blocked", "done"].includes(voiceState);
 
   const visualState = useMemo(() => {
+    if (voiceState === "unavailable") return "blocked";
+    if (voiceState === "listening") return "listening";
+    if (voiceState === "thinking") return "thinking";
+    if (voiceState === "speaking") return "speaking";
+    if (voiceState === "blocked") return "blocked";
+    if (voiceState === "done") return "done";
     if (error || status === "error" || commandState === "error") return "blocked";
     if (activePendingAction || commandState === "blocked") return "blocked";
     if (commandState === "done") return "done";
@@ -212,12 +238,13 @@ function App() {
     if (commandState === "thinking" || signal === "thinking") return "thinking";
     if (isLive && micEnabled) return "listening";
     return "standby";
-  }, [activePendingAction, commandState, error, isLive, micEnabled, signal, status]);
+  }, [activePendingAction, commandState, error, isLive, micEnabled, signal, status, voiceState]);
 
   const visualLabel = {
     standby: "Standby",
     listening: "Listening",
     thinking: "Thinking",
+    speaking: "Speaking",
     executing: "Executing",
     blocked: "Blocked",
     done: "Done"
@@ -246,6 +273,9 @@ function App() {
         : "No confirmation required",
     log: latestTool ? `${latestTool.name}: ${latestTool.status}` : "No tool activity yet"
   };
+  const lastWhatsappInbound = whatsappMessages.messages.find((item) => item.direction === "inbound");
+  const lastWhatsappOutbound = whatsappMessages.messages.find((item) => item.direction === "outbound");
+  const failedWhatsappSends = whatsappMessages.messages.filter((item) => item.direction === "outbound" && ["failed", "error"].includes(item.status)).length;
 
   useEffect(() => {
     refreshConfig();
@@ -274,6 +304,9 @@ function App() {
     return () => {
       clearInterval(pollTimer);
       clearTimeout(reconnectTimer.current);
+      clearInterval(speakingMeterRef.current);
+      voiceControllerRef.current?.stop();
+      audioMeterRef.current?.stop();
       cleanupSession();
     };
   }, []);
@@ -300,13 +333,18 @@ function App() {
   }, [alerts, notificationPermission]);
 
   const roomTone = useMemo(() => {
+    if (voiceState === "standbyListeningForWake") return "Wake layer armed. Say Hey JERVIS.";
+    if (voiceState === "listening") return "Listening. Give the mission.";
+    if (voiceState === "thinking") return "Processing command through risk gates.";
+    if (voiceState === "speaking") return "JERVIS response channel active.";
+    if (voiceState === "blocked" || voiceState === "unavailable") return "Voice channel needs operator attention.";
     if (status === "live") return "JERVIS online. Awaiting mission input.";
     if (status === "muted") return "JERVIS online. Microphone channel paused.";
     if (status === "connecting") return "Establishing realtime voice link.";
     if (status === "reconnecting") return "Recovering the voice link.";
     if (status === "error") return "Connection needs operator attention.";
     return "Max Operator console with mandatory Obsidian and Graphify.";
-  }, [status]);
+  }, [status, voiceState]);
 
   async function refreshConfig() {
     try {
@@ -473,6 +511,18 @@ function App() {
     } catch {
       setWhatsappDrafts([]);
       setWhatsappExecutor(null);
+    }
+
+    try {
+      const response = await apiFetch("/api/jarvis/whatsapp-messages?limit=8");
+      const payload = await response.json();
+      setWhatsappMessages({
+        messages: Array.isArray(payload.messages) ? payload.messages : [],
+        count: Number(payload.count) || 0
+      });
+      if (payload.executor) setWhatsappExecutor(payload.executor);
+    } catch {
+      setWhatsappMessages({ messages: [], count: 0 });
     }
   }
 
@@ -1138,6 +1188,199 @@ function App() {
     addLine("jarvis", "Voice link closed. Console remains in standby.");
   }
 
+  function stopSpeakingMeter() {
+    clearInterval(speakingMeterRef.current);
+    speakingMeterRef.current = null;
+    setVoiceSpeakingLevel(0);
+  }
+
+  function startSpeakingMeter() {
+    stopSpeakingMeter();
+    let tick = 0;
+    speakingMeterRef.current = setInterval(() => {
+      tick += 0.42;
+      setVoiceSpeakingLevel(0.12 + Math.abs(Math.sin(tick)) * 0.58);
+    }, 80);
+  }
+
+  async function speakWithMeter(text, options = {}) {
+    startSpeakingMeter();
+    try {
+      await voiceControllerRef.current?.speak(text, options);
+    } finally {
+      stopSpeakingMeter();
+    }
+  }
+
+  async function executeVoiceCommand(text) {
+    const clean = String(text || "").trim();
+    if (!clean) return false;
+    setVoiceCommandTranscript(clean);
+    setVoiceResponse("");
+    setVoiceError("");
+    setVoiceState("thinking");
+    setCommandState("thinking");
+    setSignal("voice thinking");
+    addLine("you", clean);
+    addToolLog("voice_command", "running", clean);
+
+    try {
+      const response = await apiFetch("/api/jarvis/voice-command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: clean })
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Voice command failed.");
+      }
+
+      const nextState = payload.status === "needs_confirmation"
+        ? "blocked"
+        : payload.status === "failed"
+          ? "blocked"
+          : payload.status || "done";
+      const responseText = payload.message || "Voice command processed.";
+      setVoiceResponse(responseText);
+      setCommandState(nextState === "blocked" ? "blocked" : payload.status || "done");
+      addToolLog(payload.tool || payload.intent || "voice_command", payload.status || "done", responseText);
+      addLine("jarvis", responseText);
+      if (payload.pending_action) setActivePendingAction(payload.pending_action);
+      applyCommandResult(payload);
+      refreshMemory();
+      refreshStatus();
+      refreshAudit();
+      refreshCleanupReview();
+      refreshSchedule();
+      refreshAlerts();
+      refreshBrowserTabs();
+      refreshLocalApps();
+      refreshWhatsappDrafts();
+      refreshPendingActions();
+
+      if (nextState === "blocked") {
+        setVoiceState("blocked");
+        await speakWithMeter(responseText, { state: "speaking" });
+        setVoiceState("blocked");
+        return true;
+      }
+
+      await speakWithMeter(responseText, { state: "speaking" });
+      setVoiceState("done");
+      setCommandState("done");
+      window.setTimeout(() => {
+        voiceControllerRef.current?.resumeWake();
+        setSignal("wake armed");
+      }, 900);
+      return true;
+    } catch (voiceCommandError) {
+      const message = voiceCommandError instanceof Error ? voiceCommandError.message : "Voice command failed.";
+      setVoiceError(message);
+      setVoiceState("blocked");
+      setCommandState("error");
+      setSignal("voice error");
+      addToolLog("voice_command", "failed", message);
+      addLine("jarvis", `Voice command failed: ${message}`);
+      await speakWithMeter(`Command failed: ${message}`, { state: "speaking" });
+      setVoiceState("blocked");
+      return false;
+    }
+  }
+
+  function buildVoiceController() {
+    return createJervisVoiceController({
+      onState: (nextState) => {
+        setVoiceState(nextState);
+        if (nextState === "unavailable") setSignal("voice unavailable");
+      },
+      onTranscript: ({ phase, transcript: spoken }) => {
+        if (phase === "wake") {
+          setVoiceWakeTranscript(spoken);
+        } else {
+          setVoiceCommandTranscript(spoken);
+        }
+      },
+      onWake: async (spoken) => {
+        setVoiceWakeTranscript(spoken);
+        setVoiceCommandTranscript("");
+        setVoiceResponse(JERVIS_GREETING);
+        setVoiceError("");
+        setSignal("wake accepted");
+        addLine("you", spoken);
+        addLine("jarvis", JERVIS_GREETING);
+        addToolLog("voice_wake", "online", "Wake phrase accepted");
+        await speakWithMeter(JERVIS_GREETING, { state: "speaking" });
+        voiceControllerRef.current?.listenForCommand();
+      },
+      onFinalCommand: (spoken) => {
+        executeVoiceCommand(spoken);
+      },
+      onResponse: (spoken) => {
+        setVoiceResponse(spoken);
+      },
+      onError: (message) => {
+        const clean = message || VOICE_UNAVAILABLE_MESSAGE;
+        setVoiceError(clean);
+        setVoiceState("unavailable");
+        addToolLog("voice_wake", "failed", clean);
+      }
+    });
+  }
+
+  async function startVoiceOperator() {
+    clearTimeout(reconnectTimer.current);
+    cleanupSession();
+    setError("");
+    setVoiceError("");
+    setVoiceWakeTranscript("");
+    setVoiceCommandTranscript("");
+    setVoiceResponse("");
+    setStatus("voice");
+    setSignal("requesting mic");
+    setMicEnabled(true);
+
+    audioMeterRef.current?.stop();
+    audioMeterRef.current = createAudioReactiveMeter({
+      onLevel: setVoiceVolume,
+      onError: (message) => {
+        setVoiceError(message);
+        addToolLog("audio_meter", "failed", message);
+      }
+    });
+    await audioMeterRef.current.start();
+    refreshPermissionState();
+
+    voiceControllerRef.current?.stop();
+    voiceControllerRef.current = buildVoiceController();
+    const result = voiceControllerRef.current.startWake();
+    if (!result.ok) {
+      setStatus("idle");
+      setVoiceState("unavailable");
+      setVoiceError(result.error || VOICE_UNAVAILABLE_MESSAGE);
+      setSignal("voice unavailable");
+      return false;
+    }
+
+    addToolLog("voice_wake", "armed", "Say Hey JERVIS to activate command capture");
+    setSignal("wake armed");
+    return true;
+  }
+
+  function stopVoiceOperator() {
+    voiceControllerRef.current?.stop();
+    audioMeterRef.current?.stop();
+    stopSpeakingMeter();
+    setVoiceVolume(0);
+    setVoiceWakeTranscript("");
+    setVoiceCommandTranscript("");
+    setVoiceResponse("");
+    setVoiceError("");
+    setVoiceState("standby");
+    setStatus("idle");
+    setSignal("offline");
+    addLine("jarvis", "Voice wake closed. Manual command mode remains available.");
+  }
+
   function toggleMic() {
     const next = !micEnabled;
     setMicEnabled(next);
@@ -1514,7 +1757,7 @@ function App() {
       <Sparkles size={19} />
       <span>{visualLabel}</span>
     </button>
-    <main className={`app-shell state-${visualState} ${mobileOpen ? "mobile-open" : ""}`}>
+    <main className={`app-shell state-${visualState} voice-${voiceState} ${mobileOpen ? "mobile-open" : ""}`}>
       <section className="stage" aria-label="JERVIS voice operations console">
         <button className="mobile-close" type="button" onClick={() => setMobileOpen(false)} aria-label="Close mobile assistant">
           <ChevronDown size={20} />
@@ -1539,7 +1782,8 @@ function App() {
         </div>
 
         <div className="room-core">
-          <div className={`orb dragon-core ${isLive ? "is-live" : ""}`} aria-hidden="true">
+          <div className={`orb dragon-core has-3d ${isLive || isVoiceActive ? "is-live" : ""}`} aria-hidden="true">
+            <JervisDragonCore state={visualState} volume={voiceVolume} speakingLevel={voiceSpeakingLevel} />
             <div className="smoke-field" />
             <div className="particle-field">
               <span />
@@ -1577,6 +1821,20 @@ function App() {
             </p>
           </div>
 
+          <div className={`voice-readout voice-${voiceState}`} aria-live="polite">
+            <div>
+              <span>VOICE V1</span>
+              <strong>{voiceState === "standbyListeningForWake" ? "Wake armed" : voiceState}</strong>
+            </div>
+            <p>
+              {voiceError ||
+                voiceResponse ||
+                voiceCommandTranscript ||
+                voiceWakeTranscript ||
+                "Say Hey JERVIS. Manual command mode remains available."}
+            </p>
+          </div>
+
           <div className="mission-strip">
             <input value={mission} onChange={(event) => setMission(event.target.value)} aria-label="Active mission" />
             <button onClick={sendMission} disabled={!mission.trim()}>
@@ -1586,13 +1844,13 @@ function App() {
           </div>
 
           <div className="controls" aria-label="Session controls">
-            {!isLive && status !== "connecting" && status !== "requesting" && status !== "reconnecting" ? (
-              <button className="primary-action" onClick={() => startSession()}>
+            {!isLive && !isVoiceActive && status !== "connecting" && status !== "requesting" && status !== "reconnecting" ? (
+              <button className="primary-action" onClick={startVoiceOperator}>
                 <Mic size={20} />
                 <span>Start JERVIS</span>
               </button>
             ) : (
-              <button className="danger-action" onClick={stopSession}>
+              <button className="danger-action" onClick={isVoiceActive ? stopVoiceOperator : stopSession}>
                 <CircleStop size={20} />
                 <span>End</span>
               </button>
@@ -1600,7 +1858,12 @@ function App() {
             <button className="icon-action" onClick={toggleMic} disabled={!isLive} title={micEnabled ? "Mute microphone" : "Unmute microphone"}>
               {micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
             </button>
-            <button className="icon-action" onClick={() => startSession({ recovering: true })} disabled={status === "connecting" || status === "requesting"} title="Reconnect">
+            <button
+              className="icon-action"
+              onClick={isVoiceActive ? startVoiceOperator : () => startSession({ recovering: true })}
+              disabled={status === "connecting" || status === "requesting"}
+              title={isVoiceActive ? "Restart voice wake" : "Reconnect realtime"}
+            >
               <RefreshCcw size={20} />
             </button>
           </div>
@@ -1608,7 +1871,7 @@ function App() {
 
         <div className="status-grid">
           <StatusTile icon={<Activity size={18} />} label="Status" value={visualLabel} />
-          <StatusTile icon={<Volume2 size={18} />} label="Voice" value={config.voice} />
+          <StatusTile icon={<Volume2 size={18} />} label="Voice" value={isVoiceActive || voiceState === "unavailable" ? voiceState : config.voice} />
           <StatusTile icon={<BrainCircuit size={18} />} label="Model" value={config.model} />
           <StatusTile icon={<Unplug size={18} />} label="Signal" value={signal} />
           <StatusTile icon={<TerminalSquare size={18} />} label="Command" value={commandState} />
@@ -2247,6 +2510,32 @@ function App() {
               Webhook: {systemStatus?.whatsapp?.webhook?.verify_token_configured ? "verify token ready" : "verify token missing"}.
             </p>
           ) : null}
+          <div className="brief-grid">
+            <article className="brief-stat">
+              <span>Config</span>
+              <strong>{systemStatus?.whatsapp?.configured ? "ready" : "missing"}</strong>
+            </article>
+            <article className="brief-stat">
+              <span>Webhook</span>
+              <strong>{systemStatus?.whatsapp?.webhook?.verify_token_configured ? "ready" : "missing"}</strong>
+            </article>
+            <article className="brief-stat">
+              <span>Send mode</span>
+              <strong>{whatsappExecutor?.dry_run === false ? "live gated" : "dry-run"}</strong>
+            </article>
+            <article className="brief-stat">
+              <span>Failed sends</span>
+              <strong>{failedWhatsappSends}</strong>
+            </article>
+          </div>
+          <div className="brief-stack">
+            <p className="empty-state">
+              Last inbound: {lastWhatsappInbound?.body || lastWhatsappInbound?.message || "none"}.
+            </p>
+            <p className="empty-state">
+              Last outbound: {lastWhatsappOutbound?.body || lastWhatsappOutbound?.message || "none"}.
+            </p>
+          </div>
           <div className="inline-editor">
             <strong>Live mode control</strong>
             <p className="empty-state">

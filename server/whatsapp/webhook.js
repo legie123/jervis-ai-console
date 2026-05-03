@@ -6,6 +6,16 @@ export function verifyWebhookSubscription(query, verifyToken) {
   return query["hub.challenge"] || "";
 }
 
+export function normalizeWhatsAppPhone(value) {
+  return String(value || "").replace(/[^\d]/g, "");
+}
+
+export function isOwnerWhatsAppPhone(fromPhone, ownerPhoneE164) {
+  const from = normalizeWhatsAppPhone(fromPhone);
+  const owner = normalizeWhatsAppPhone(ownerPhoneE164);
+  return Boolean(from && owner && from === owner);
+}
+
 export function verifyMetaSignature({ rawBody, signatureHeader, appSecret, nodeEnv }) {
   if (!appSecret) {
     return { ok: nodeEnv !== "production", skipped: true };

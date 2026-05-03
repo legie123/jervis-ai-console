@@ -48,8 +48,46 @@ JARVIS is a browser-based realtime voice operations console. The browser owns mi
 Local access notes:
 
 - The API now requires `X-Jarvis-Key`, supplied by the browser from `VITE_JARVIS_TOKEN`.
-- The local server binds to loopback only.
+- The local dev server binds to loopback only. Production binds to `0.0.0.0` for Cloud Run.
 - `/api/realtime-token` is rate-limited.
+
+## WhatsApp Cloud API
+
+JARVIS uses the official Meta WhatsApp Cloud API. It does not use WhatsApp Web automation or `.webjs_auth`.
+
+Required environment values:
+
+```bash
+META_WA_VERIFY_TOKEN=
+META_WA_ACCESS_TOKEN=
+META_WA_PHONE_NUMBER_ID=
+META_WA_BUSINESS_ACCOUNT_ID=
+META_WA_APP_SECRET=
+META_WA_GRAPH_VERSION=v25.0
+JARVIS_OWNER_PHONE_E164=
+WHATSAPP_SEND_ENABLED=false
+WHATSAPP_DRY_RUN=true
+```
+
+Webhook endpoints:
+
+- `GET /api/whatsapp/webhook` verifies Meta `hub.challenge`.
+- `POST /api/whatsapp/webhook` receives inbound messages and status updates.
+
+Safety behavior:
+
+- Only `JARVIS_OWNER_PHONE_E164` is accepted for inbound commands.
+- Non-owner inbound messages are rejected and logged.
+- Webhook replies are always created as drafts plus Pending Actions.
+- Live send never happens from the webhook directly.
+- Real outbound send requires auth, configured Meta credentials, `WHATSAPP_SEND_ENABLED=true`, `WHATSAPP_DRY_RUN=false`, and explicit confirmation.
+
+Cloud Run:
+
+- `Dockerfile` is included for a Node 20 production image.
+- Set secrets as Cloud Run environment variables or Secret Manager bindings.
+- Use the Cloud Run URL as the Meta callback: `https://<service-url>/api/whatsapp/webhook`.
+- Keep dry-run enabled until webhook verification, inbound owner filtering, and draft logging pass.
 
 ## Terminal Obsidian helper
 

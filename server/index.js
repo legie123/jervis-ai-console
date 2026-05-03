@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import helmet from "helmet";
+import nodeCrypto from "node:crypto";
 import fs from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -8,9 +9,13 @@ import path from "node:path";
 import rateLimit from "express-rate-limit";
 import { promisify } from "node:util";
 import { createElevenLabsClient } from "./elevenlabs/client.js";
+import { loadWhatsAppConfig } from "./whatsapp/config.js";
 import { createWhatsAppExecutor } from "./whatsapp/executor.js";
+import { WhatsAppCloudApi } from "./whatsapp/client.js";
 import {
   extractWebhookEvents,
+  isOwnerWhatsAppPhone,
+  normalizeWhatsAppPhone,
   verifyMetaSignature,
   verifyWebhookSubscription
 } from "./whatsapp/webhook.js";
@@ -23,6 +28,7 @@ const model = process.env.REALTIME_MODEL || "gpt-realtime-1.5";
 const voice = process.env.REALTIME_VOICE || "cedar";
 const jarvisToken = safeStartupValue(process.env.JARVIS_TOKEN);
 const userHome = safeStartupValue(process.env.HOME);
+const isProduction = process.env.NODE_ENV === "production";
 const dataDir = path.join(root, "data");
 const memoryPath = path.join(dataDir, "jarvis-memory.json");
 const auditPath = path.join(dataDir, "jarvis-audit.json");
@@ -35,11 +41,13 @@ const calendarExportDir = path.join(dataDir, "calendar-exports");
 const contactsPath = path.join(dataDir, "jarvis-contacts.json");
 const whatsappDraftsPath = path.join(dataDir, "jarvis-whatsapp-drafts.json");
 const whatsappMessagesPath = path.join(dataDir, "jarvis-whatsapp-messages.json");
+const whatsappAuditPath = path.join(dataDir, "jarvis-whatsapp-audit.json");
 const obsidianRepo = path.resolve(root, "../3rd_party_repos/obsidian-releases");
 const graphifyRepo = path.resolve(root, "../3rd_party_repos/graphify");
 const obsidianVaultDir = path.join(dataDir, "obsidian-vault");
 const graphifyOutDir = path.join(root, "graphify-out");
 const localHost = "127.0.0.1";
+const listenHost = isProduction ? "0.0.0.0" : localHost;
 const fileMutationQueues = new Map();
 const schedulerLookaheadMs = 3 * 60 * 60 * 1000;
 const morningBriefHour = Number(process.env.JARVIS_MORNING_BRIEF_HOUR || 5);
@@ -60,23 +68,46 @@ let localAppCache = { expiresAt: 0, apps: [] };
 let browserTabCache = { expiresAt: 0, tabs: [] };
 let schedulerTimer = null;
 const pendingActionExecutorIntents = new Set(["calendar_import", "whatsapp_web_open", "whatsapp_send", "close_browser_tab"]);
-const whatsappExecutor = createWhatsAppExecutor({ env: process.env });
+const whatsappConfig = loadWhatsAppConfig(process.env);
+const whatsappExecutor = createWhatsAppExecutor({ config: whatsappConfig });
+const whatsappCloudClient = new WhatsAppCloudApi({
+  accessToken: whatsappConfig.accessToken,
+  phoneNumberId: whatsappConfig.phoneNumberId,
+  graphVersion: whatsappConfig.graphVersion
+});
 const elevenLabsClient = createElevenLabsClient({ env: process.env });
+const whatsappWebhookLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many WhatsApp webhook requests. Try again in a minute." }
+});
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }));
-app.get("/webhooks/whatsapp", handleWhatsappWebhookSubscribe);
-app.post("/webhooks/whatsapp", express.raw({ type: "application/json", limit: "128kb" }), handleWhatsappWebhookEvent);
+app.get("/webhooks/whatsapp", whatsappWebhookLimiter, handleWhatsappWebhookSubscribe);
+app.post("/webhooks/whatsapp", whatsappWebhookLimiter, express.raw({ type: "application/json", limit: "128kb" }), handleWhatsappWebhookEvent);
+app.get("/api/whatsapp/webhook", whatsappWebhookLimiter, handleWhatsappWebhookSubscribe);
+app.post("/api/whatsapp/webhook", whatsappWebhookLimiter, express.raw({ type: "application/json", limit: "128kb" }), handleOfficialWhatsappWebhookEvent);
 app.use(express.json({ limit: "32kb" }));
 
 app.use(blockPrivateDataAccess);
 
-const allowedOrigins = new Set([`http://localhost:${port}`, `http://127.0.0.1:${port}`]);
+const allowedOrigins = new Set([
+  `http://localhost:${port}`,
+  `http://127.0.0.1:${port}`,
+  ...safeStartupValue(process.env.JARVIS_ALLOWED_ORIGINS)
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+]);
 const realtimeTokenLimiter = rateLimit({
   windowMs: 60_000,
   max: 10,
@@ -599,9 +630,25 @@ function safeStartupValue(value) {
   return String(value || "").trim();
 }
 
+function isAllowedApiOrigin(req, origin) {
+  if (!origin) return true;
+  if (allowedOrigins.has(origin)) return true;
+
+  if (isProduction) {
+    try {
+      const originUrl = new URL(origin);
+      return originUrl.host === req.get("host");
+    } catch {
+      return false;
+    }
+  }
+
+  return false;
+}
+
 function applyApiCors(req, res) {
   const origin = safeStartupValue(req.get("origin"));
-  if (!origin || !allowedOrigins.has(origin)) return;
+  if (!origin || !isAllowedApiOrigin(req, origin)) return;
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin, Access-Control-Request-Headers");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
@@ -612,7 +659,7 @@ function requireApiAccess(req, res, next) {
   applyApiCors(req, res);
 
   const origin = safeStartupValue(req.get("origin"));
-  if (origin && !allowedOrigins.has(origin)) {
+  if (origin && !isAllowedApiOrigin(req, origin)) {
     return res.status(403).json({ error: "Origin not allowed." });
   }
 
@@ -893,6 +940,8 @@ async function resolveWhatsappContact(recipient) {
       contact.label,
       contact.nickname,
       contact.email,
+      contact.phone_e164,
+      contact.phone,
       ...(Array.isArray(contact.aliases) ? contact.aliases : [])
     ]
       .map(normalizeContactLookup)
@@ -902,7 +951,14 @@ async function resolveWhatsappContact(recipient) {
 
   if (!matches.length) return null;
   const exact = matches.find((contact) => {
-    const names = [contact.name, contact.label, contact.nickname, ...(Array.isArray(contact.aliases) ? contact.aliases : [])]
+    const names = [
+      contact.name,
+      contact.label,
+      contact.nickname,
+      contact.phone_e164,
+      contact.phone,
+      ...(Array.isArray(contact.aliases) ? contact.aliases : [])
+    ]
       .map(normalizeContactLookup)
       .filter(Boolean);
     return names.includes(query);
@@ -939,6 +995,11 @@ async function readWhatsappMessages() {
   return Array.isArray(parsed) ? parsed : [];
 }
 
+async function readWhatsappAuditLogs() {
+  const parsed = await readJsonFile(whatsappAuditPath, []);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
 async function appendWhatsappMessage(record) {
   return updateArrayFile(whatsappMessagesPath, 300, (items) => {
     const item = {
@@ -951,21 +1012,67 @@ async function appendWhatsappMessage(record) {
   });
 }
 
+async function appendWhatsappAuditLog(record) {
+  return updateArrayFile(whatsappAuditPath, 300, (items) => {
+    const item = {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      ...record
+    };
+    items.push(item);
+    return { items, audit_log: item };
+  });
+}
+
+function hashWhatsappPayload(payload) {
+  const raw = typeof payload === "string" ? payload : JSON.stringify(payload || {});
+  return `sha256:${nodeCrypto.createHash("sha256").update(raw).digest("hex")}`;
+}
+
 async function recordWhatsappInboundMessage(message) {
   return appendWhatsappMessage({
     source: "webhook",
     direction: "inbound",
+    wa_message_id: message.id,
     provider_message_id: message.id,
     channel: "whatsapp",
     provider: "whatsapp_cloud_api",
+    from_phone: message.from,
+    to_phone: message.display_phone_number || message.phone_number_id || "",
     from: message.from,
+    body: message.text,
     message: message.text,
+    message_type: message.type,
     type: message.type,
     status: "received",
+    dry_run: true,
     execution_state: "received",
     received_at: new Date().toISOString(),
     webhook_timestamp: message.timestamp,
+    raw_payload_path_or_hash: hashWhatsappPayload(message.raw),
     raw: message.raw
+  });
+}
+
+async function recordWhatsappOutboundMessage(record) {
+  return appendWhatsappMessage({
+    source: record.source || "whatsapp_cloud_api",
+    direction: "outbound",
+    wa_message_id: record.wa_message_id || record.provider_message_id || "",
+    provider_message_id: record.provider_message_id || record.wa_message_id || "",
+    channel: "whatsapp",
+    provider: "whatsapp_cloud_api",
+    from_phone: record.from_phone || whatsappConfig.phoneNumberId || "",
+    to_phone: record.to_phone || "",
+    body: record.body || "",
+    message: record.body || "",
+    message_type: "text",
+    type: "text",
+    status: record.status || "draft_only",
+    dry_run: Boolean(record.dry_run),
+    execution_state: record.execution_state || record.status || "draft_only",
+    raw_payload_path_or_hash: record.raw_payload_path_or_hash || "",
+    provider_response: record.provider_response || null
   });
 }
 
@@ -1014,15 +1121,21 @@ async function updateWhatsappMessageDeliveryStatus(status) {
 }
 
 function whatsappWebhookVerifyToken() {
-  return safeStartupValue(process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN);
+  return whatsappConfig.verifyToken;
 }
 
 function whatsappWebhookStatus() {
+  const executorStatus = whatsappExecutor.getStatus();
   return {
-    verify_token_configured: Boolean(whatsappWebhookVerifyToken()),
-    signature_configured: Boolean(process.env.WHATSAPP_APP_SECRET),
-    signature_required: process.env.NODE_ENV === "production",
-    endpoint: "/webhooks/whatsapp"
+    endpoint: "/api/whatsapp/webhook",
+    legacy_endpoint: "/webhooks/whatsapp",
+    verify_token_configured: Boolean(whatsappConfig.verifyToken),
+    signature_configured: Boolean(whatsappConfig.appSecret),
+    signature_required: isProduction,
+    owner_configured: whatsappConfig.ownerConfigured,
+    send_enabled: executorStatus.send_enabled,
+    dry_run: executorStatus.dry_run,
+    auto_send_from_webhook: false
   };
 }
 
@@ -1034,13 +1147,252 @@ function handleWhatsappWebhookSubscribe(req, res) {
   return res.status(200).send(challenge);
 }
 
+async function runWhatsAppMissionText(text) {
+  const clean = safeNote(text);
+  if (!clean) {
+    return {
+      ok: true,
+      status: "ignored",
+      risk: "direct_ok",
+      message: "Am primit mesajul, dar nu contine text util."
+    };
+  }
+
+  const inferred = inferCommand(clean);
+  const initialRisk = classifyRisk(clean);
+  const safeInternalIntent = [
+    "reminder",
+    "learning_signal",
+    "memory_write",
+    "memory_recall",
+    "whatsapp_draft",
+    "operational_brief",
+    "schedule_overview",
+    "capability_status",
+    "time_check",
+    "plan"
+  ].includes(inferred.intent);
+  const risk = safeInternalIntent && ["confirmation_required", "high_risk_confirmation"].includes(initialRisk) ? "direct_ok" : initialRisk;
+
+  if (risk === "disallowed" || risk === "handoff_required") {
+    await appendAudit({
+      source: "whatsapp_inbound",
+      command: clean,
+      intent: inferred.intent,
+      tool: inferred.tool,
+      risk,
+      status: "blocked",
+      detail: "WhatsApp command blocked by JARVIS risk gate."
+    });
+    return {
+      ok: true,
+      status: "blocked",
+      risk,
+      message: commandMessage(inferred.intent, { ok: true }, risk)
+    };
+  }
+
+  if (["confirmation_required", "high_risk_confirmation"].includes(risk)) {
+    const draft = await runJarvisTool("draft_action", { objective: clean, format: inferDraftFormat(clean) });
+    const pendingAction = await createPendingAction({
+      command: clean,
+      intent: inferred.intent,
+      risk,
+      draft
+    });
+    await appendAudit({
+      source: "whatsapp_inbound",
+      command: clean,
+      intent: pendingAction.intent,
+      tool: "draft_action",
+      risk,
+      status: "needs_confirmation",
+      detail: `WhatsApp command moved to Pending Actions: ${pendingAction.id}`
+    });
+    return {
+      ok: true,
+      status: "needs_confirmation",
+      risk,
+      pending_action_id: pendingAction.id,
+      message: "Am pregatit actiunea, dar cere confirmare in JARVIS inainte de executie."
+    };
+  }
+
+  const result = await runJarvisTool(inferred.tool, inferred.args);
+  const message = commandMessage(inferred.intent, result, risk);
+  await appendAudit({
+    source: "whatsapp_inbound",
+    command: clean,
+    intent: inferred.intent,
+    tool: inferred.tool,
+    risk,
+    status: result.ok ? "done" : "failed",
+    detail: message
+  });
+  return {
+    ok: result.ok,
+    status: result.ok ? "done" : "failed",
+    risk,
+    intent: inferred.intent,
+    tool: inferred.tool,
+    result,
+    message
+  };
+}
+
+async function sendOrDraftWhatsappReply({ toPhone, body, source }) {
+  const safeTo = safeNote(toPhone);
+  const providerTo = normalizeWhatsAppPhone(safeTo);
+  const safeBody = safeNote(body).slice(0, 4096);
+  if (!providerTo || !safeBody) {
+    const error = new Error("WhatsApp reply requires toPhone and body.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!whatsappConfig.liveSendAllowed) {
+    const messageRecord = await recordWhatsappOutboundMessage({
+      source,
+      to_phone: safeTo,
+      body: safeBody,
+      status: "draft_only",
+      dry_run: true,
+      execution_state: "dry_run",
+      raw_payload_path_or_hash: hashWhatsappPayload({ to: providerTo, body: safeBody, dry_run: true })
+    });
+    const auditLog = await appendWhatsappAuditLog({
+      action: "outbound_draft",
+      risk_level: "direct_ok",
+      confirmation_required: false,
+      confirmation_status: "not_required_dry_run",
+      result: "dry_run_draft_logged",
+      error: "",
+      message_id: messageRecord.message.id
+    });
+    return {
+      ok: true,
+      dry_run: true,
+      status: "draft_only",
+      sent: false,
+      message: messageRecord.message,
+      audit_log: auditLog.audit_log
+    };
+  }
+
+  const providerResponse = await whatsappCloudClient.sendText({ to: providerTo, text: safeBody });
+  const providerMessageId = providerResponse?.messages?.[0]?.id || "";
+  const messageRecord = await recordWhatsappOutboundMessage({
+    source,
+    to_phone: safeTo,
+    body: safeBody,
+    status: "sent",
+    dry_run: false,
+    execution_state: "sent",
+    wa_message_id: providerMessageId,
+    provider_response: providerResponse,
+    raw_payload_path_or_hash: hashWhatsappPayload(providerResponse)
+  });
+  const auditLog = await appendWhatsappAuditLog({
+    action: "outbound_send",
+    risk_level: "medium",
+    confirmation_required: true,
+    confirmation_status: "confirmed",
+    result: "sent",
+    error: "",
+    message_id: messageRecord.message.id
+  });
+  return {
+    ok: true,
+    dry_run: false,
+    status: "sent",
+    sent: true,
+    provider_response: providerResponse,
+    message: messageRecord.message,
+    audit_log: auditLog.audit_log
+  };
+}
+
+async function createPendingWhatsappReply({ toPhone, body, source, inboundWaMessageId }) {
+  const safeTo = safeNote(toPhone);
+  const providerTo = normalizeWhatsAppPhone(safeTo);
+  const safeBody = safeNote(body).slice(0, 4096);
+  if (!providerTo || !safeBody) {
+    const error = new Error("WhatsApp pending reply requires toPhone and body.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const recipient = `+${providerTo}`;
+  const draftResult = await createWhatsappDraft({ recipient, message: safeBody });
+  const pendingAction = await createPendingAction({
+    command: `Confirm WhatsApp reply to owner ending ${providerTo.slice(-4)}`,
+    intent: "whatsapp_send",
+    risk: "confirmation_required",
+    draft: {
+      title: "Confirm WhatsApp reply",
+      items: [
+        `Recipient: WhatsApp owner ending ${providerTo.slice(-4)}`,
+        `Draft text: ${safeBody}`,
+        "Created from inbound WhatsApp webhook.",
+        whatsappConfig.dryRun
+          ? "Dry-run is active. Confirmation logs the attempt only."
+          : "Dry-run is disabled. Confirmation can send through WhatsApp Cloud API.",
+        "This webhook never sends automatically."
+      ],
+      audience: "operator",
+      whatsapp_draft_id: draftResult.draft.id,
+      recipient,
+      message: safeBody,
+      source,
+      inbound_wa_message_id: inboundWaMessageId || ""
+    }
+  });
+  const messageRecord = await recordWhatsappOutboundMessage({
+    source,
+    to_phone: recipient,
+    body: safeBody,
+    status: "pending_confirmation",
+    dry_run: true,
+    execution_state: "awaiting_confirmation",
+    raw_payload_path_or_hash: hashWhatsappPayload({
+      to: providerTo,
+      body: safeBody,
+      draft_id: draftResult.draft.id,
+      pending_action_id: pendingAction.id,
+      auto_send: false
+    })
+  });
+  const auditLog = await appendWhatsappAuditLog({
+    action: "outbound_pending_confirmation",
+    risk_level: "medium",
+    confirmation_required: true,
+    confirmation_status: "awaiting_confirmation",
+    result: "pending_action_created",
+    error: "",
+    wa_message_id: inboundWaMessageId || "",
+    message_id: messageRecord.message.id,
+    pending_action_id: pendingAction.id
+  });
+
+  return {
+    ok: true,
+    dry_run: true,
+    status: "pending_confirmation",
+    sent: false,
+    draft: draftResult.draft,
+    pending_action: pendingAction,
+    message: messageRecord.message,
+    audit_log: auditLog.audit_log
+  };
+}
+
 async function handleWhatsappWebhookEvent(req, res) {
   const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from("");
   const signature = verifyMetaSignature({
     rawBody,
     signatureHeader: req.get("x-hub-signature-256"),
-    appSecret: process.env.WHATSAPP_APP_SECRET,
-    nodeEnv: process.env.NODE_ENV
+    appSecret: whatsappConfig.appSecret,
+    nodeEnv: isProduction ? "production" : process.env.NODE_ENV
   });
 
   if (!signature.ok) {
@@ -1086,6 +1438,128 @@ async function handleWhatsappWebhookEvent(req, res) {
       detail: error instanceof Error ? error.message : "Webhook parse failed."
     });
     return res.status(400).json({ ok: false, error: error instanceof Error ? error.message : "Webhook parse failed." });
+  }
+}
+
+async function handleOfficialWhatsappWebhookEvent(req, res) {
+  const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from("");
+  const signature = verifyMetaSignature({
+    rawBody,
+    signatureHeader: req.get("x-hub-signature-256"),
+    appSecret: whatsappConfig.appSecret,
+    nodeEnv: isProduction ? "production" : process.env.NODE_ENV
+  });
+
+  if (!signature.ok) {
+    await appendWhatsappAuditLog({
+      action: "webhook_rejected",
+      risk_level: "low",
+      confirmation_required: false,
+      confirmation_status: "not_required",
+      result: "blocked",
+      error: "bad_signature"
+    });
+    return res.sendStatus(403);
+  }
+
+  try {
+    const rawText = rawBody.toString("utf8") || "{}";
+    const payload = JSON.parse(rawText);
+    const payloadHash = hashWhatsappPayload(rawText);
+    const events = extractWebhookEvents(payload);
+    const processed = [];
+    const rejected = [];
+    const outbound = [];
+
+    for (const status of events.statuses) {
+      await updateWhatsappMessageDeliveryStatus(status);
+    }
+
+    for (const message of events.messages) {
+      const ownerAllowed = isOwnerWhatsAppPhone(message.from, whatsappConfig.ownerPhoneE164);
+      if (!ownerAllowed) {
+        rejected.push(message.id);
+        await appendWhatsappAuditLog({
+          action: "inbound_rejected",
+          risk_level: "low",
+          confirmation_required: false,
+          confirmation_status: "not_required",
+          result: "rejected_non_owner",
+          error: "",
+          wa_message_id: message.id
+        });
+        continue;
+      }
+
+      const inbound = await recordWhatsappInboundMessage({
+        ...message,
+        raw: {
+          ...message.raw,
+          payload_hash: payloadHash
+        }
+      });
+      await appendWhatsappAuditLog({
+        action: "inbound_received",
+        risk_level: "low",
+        confirmation_required: false,
+        confirmation_status: "not_required",
+        result: "received",
+        error: "",
+        wa_message_id: message.id
+      });
+
+      const replyText = message.type === "text"
+        ? (await runWhatsAppMissionText(message.text)).message
+        : "Pot procesa doar mesaje text in faza curenta.";
+      const reply = await createPendingWhatsappReply({
+        toPhone: message.from,
+        body: replyText,
+        source: "whatsapp_webhook_reply",
+        inboundWaMessageId: message.id
+      });
+
+      processed.push({
+        wa_message_id: message.id,
+        local_message_id: inbound.message.id,
+        type: message.type
+      });
+      outbound.push({
+        status: reply.status,
+        dry_run: reply.dry_run,
+        sent: reply.sent,
+        local_message_id: reply.message.id,
+        pending_action_id: reply.pending_action.id
+      });
+    }
+
+    const auditEvent = await appendAudit({
+      source: "whatsapp_webhook",
+      intent: "api_webhook_event",
+      risk: "direct_ok",
+      status: "done",
+      detail: `Official WhatsApp webhook processed: ${processed.length} accepted, ${rejected.length} rejected, ${events.statuses.length} statuses.`
+    });
+    return res.json({
+      ok: true,
+      accepted: processed.length,
+      rejected: rejected.length,
+      statuses: events.statuses.length,
+      outbound,
+      dry_run: whatsappConfig.dryRun,
+      signature_skipped: signature.skipped,
+      audit_event: auditEvent
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Webhook parse failed.";
+    await appendWhatsappAuditLog({
+      action: "webhook_parse_failed",
+      risk_level: "low",
+      confirmation_required: false,
+      confirmation_status: "not_required",
+      result: "failed",
+      error: message
+    });
+    return res.status(error.statusCode || 400).json({ ok: false, error: message });
   }
 }
 
@@ -3042,7 +3516,7 @@ async function getModuleStatus() {
       path: path.relative(root, pendingActionsPath)
     },
     whatsapp: {
-      status: whatsappStatus.mode === "dry_run" ? "dry_run_ready" : whatsappStatus.mode === "live" ? "live_ready" : "blocked_missing_config",
+      status: whatsappStatus.mode === "dry_run" ? "dry_run_ready" : whatsappStatus.mode === "live_ready" ? "live_ready" : whatsappStatus.mode,
       executor_attached: whatsappStatus.executor_attached,
       dry_run: whatsappStatus.dry_run,
       configured: whatsappStatus.configured,
@@ -3052,6 +3526,7 @@ async function getModuleStatus() {
       webhook: whatsappWebhookStatus(),
       drafts: whatsappDrafts.length,
       messages: whatsappMessages.length,
+      audit_logs: (await readWhatsappAuditLogs()).length,
       path: path.relative(root, whatsappDraftsPath)
     },
     elevenlabs: {
@@ -4033,6 +4508,108 @@ function buildSession() {
 
 app.use("/api", requireApiAccess);
 
+app.post("/api/whatsapp/draft", async (req, res) => {
+  try {
+    const to = safeNote(req.body?.to || req.body?.recipient || req.body?.phone);
+    const body = safeNote(req.body?.body || req.body?.text || req.body?.message).slice(0, 4096);
+    if (!to || !body) {
+      return res.status(400).json({ ok: false, error: "to and body are required." });
+    }
+
+    const draft = await createWhatsappDraft({ recipient: to, message: body });
+    const outbound = await recordWhatsappOutboundMessage({
+      source: "api_whatsapp_draft",
+      to_phone: to,
+      body,
+      status: "draft_only",
+      dry_run: true,
+      execution_state: "draft_only",
+      raw_payload_path_or_hash: hashWhatsappPayload({ to, body, draft_id: draft.draft.id })
+    });
+    const auditLog = await appendWhatsappAuditLog({
+      action: "outbound_draft",
+      risk_level: "low",
+      confirmation_required: false,
+      confirmation_status: "not_required",
+      result: "draft_created",
+      error: "",
+      message_id: outbound.message.id
+    });
+
+    res.status(201).json({
+      ok: true,
+      draft: draft.draft,
+      message: outbound.message,
+      audit_log: auditLog.audit_log,
+      warning: "Draft only. Nothing was sent."
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not create WhatsApp draft.";
+    await appendWhatsappAuditLog({
+      action: "outbound_draft",
+      risk_level: "low",
+      confirmation_required: false,
+      confirmation_status: "not_required",
+      result: "failed",
+      error: message
+    });
+    res.status(error.statusCode || 500).json({ ok: false, error: message });
+  }
+});
+
+app.post("/api/whatsapp/send", async (req, res) => {
+  try {
+    const to = safeNote(req.body?.to || req.body?.recipient || req.body?.phone);
+    const body = safeNote(req.body?.body || req.body?.text || req.body?.message).slice(0, 4096);
+    if (!to || !body) {
+      return res.status(400).json({ ok: false, error: "to and body are required." });
+    }
+
+    if (!whatsappConfig.dryRun && safeStartupValue(req.body?.confirmation_phrase) !== "SEND WHATSAPP") {
+      const auditLog = await appendWhatsappAuditLog({
+        action: "outbound_send",
+        risk_level: "medium",
+        confirmation_required: true,
+        confirmation_status: "missing",
+        result: "blocked",
+        error: "confirmation_phrase SEND WHATSAPP required"
+      });
+      return res.status(400).json({
+        ok: false,
+        error: "Live WhatsApp send requires confirmation_phrase SEND WHATSAPP.",
+        audit_log: auditLog.audit_log
+      });
+    }
+
+    const result = await sendOrDraftWhatsappReply({
+      toPhone: to,
+      body,
+      source: "api_whatsapp_send"
+    });
+
+    res.status(result.sent ? 200 : 202).json({
+      ok: true,
+      sent: result.sent,
+      dry_run: result.dry_run,
+      status: result.status,
+      message: result.message,
+      audit_log: result.audit_log,
+      warning: result.sent ? "" : "Dry-run/draft mode. No WhatsApp API call was made."
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not send WhatsApp message.";
+    const auditLog = await appendWhatsappAuditLog({
+      action: "outbound_send",
+      risk_level: "medium",
+      confirmation_required: true,
+      confirmation_status: "failed",
+      result: "failed",
+      error: message
+    });
+    res.status(error.statusCode || 500).json({ ok: false, error: message, audit_log: auditLog.audit_log });
+  }
+});
+
 app.get("/api/config", (_req, res) => {
   res.json({
     model,
@@ -4695,9 +5272,14 @@ app.post("/api/jarvis/tool", async (req, res) => {
   }
 });
 
-app.post("/api/jarvis/command", async (req, res) => {
-  const text = safeNote(req.body?.text);
-  if (!text) return res.status(400).json({ ok: false, error: "No command text supplied." });
+async function runJarvisCommandRequest(rawText, { source = "command" } = {}) {
+  const text = safeNote(rawText);
+  if (!text) {
+    return {
+      statusCode: 400,
+      body: { ok: false, error: "No command text supplied." }
+    };
+  }
 
   const inferred = inferCommand(text);
   const initialRisk = classifyRisk(text);
@@ -4726,7 +5308,7 @@ app.post("/api/jarvis/command", async (req, res) => {
   try {
     if (risk === "disallowed" || risk === "handoff_required") {
       const auditEvent = await appendAudit({
-        source: "command",
+        source,
         command: text,
         intent: inferred.intent,
         tool: inferred.tool,
@@ -4734,16 +5316,19 @@ app.post("/api/jarvis/command", async (req, res) => {
         status: "blocked",
         detail: risk === "disallowed" ? "Command is disallowed." : "Command needs user handoff."
       });
-      return res.json({
-        ok: true,
-        intent: inferred.intent,
-        tool: inferred.tool,
-        risk,
-        status: "blocked",
-        requires_confirmation: risk === "handoff_required",
-        message: commandMessage(inferred.intent, { ok: true }, risk),
-        audit_event: auditEvent
-      });
+      return {
+        statusCode: 200,
+        body: {
+          ok: true,
+          intent: inferred.intent,
+          tool: inferred.tool,
+          risk,
+          status: "blocked",
+          requires_confirmation: risk === "handoff_required",
+          message: commandMessage(inferred.intent, { ok: true }, risk),
+          audit_event: auditEvent
+        }
+      };
     }
 
     if (["confirmation_required", "high_risk_confirmation"].includes(risk) && !["risk_check", "graphify_proposal"].includes(inferred.intent)) {
@@ -4766,7 +5351,7 @@ app.post("/api/jarvis/command", async (req, res) => {
         draft
       });
       const auditEvent = await appendAudit({
-        source: "command",
+        source,
         command: text,
         intent: pendingAction.intent,
         tool: closeRequest ? "close_browser_tab" : "draft_action",
@@ -4774,23 +5359,26 @@ app.post("/api/jarvis/command", async (req, res) => {
         status: "needs_confirmation",
         detail: `Pending action created: ${pendingAction.id}`
       });
-      return res.json({
-        ok: true,
-        intent: pendingAction.intent,
-        tool: closeRequest ? "close_browser_tab" : "draft_action",
-        risk,
-        status: "needs_confirmation",
-        requires_confirmation: true,
-        result: draft,
-        pending_action: pendingAction,
-        message: "Action moved to Pending Actions. Review it, then confirm or cancel.",
-        audit_event: auditEvent
-      });
+      return {
+        statusCode: 200,
+        body: {
+          ok: true,
+          intent: pendingAction.intent,
+          tool: closeRequest ? "close_browser_tab" : "draft_action",
+          risk,
+          status: "needs_confirmation",
+          requires_confirmation: true,
+          result: draft,
+          pending_action: pendingAction,
+          message: "Action moved to Pending Actions. Review it, then confirm or cancel.",
+          audit_event: auditEvent
+        }
+      };
     }
 
     const result = await runJarvisTool(inferred.tool, inferred.args);
     const auditEvent = await appendAudit({
-      source: "command",
+      source,
       command: text,
       intent: inferred.intent,
       tool: inferred.tool,
@@ -4799,21 +5387,24 @@ app.post("/api/jarvis/command", async (req, res) => {
       detail: result.ok ? commandMessage(inferred.intent, result, risk) : result.error
     });
 
-    res.json({
-      ok: result.ok,
-      intent: inferred.intent,
-      tool: inferred.tool,
-      risk,
-      status: result.ok ? "done" : "failed",
-      requires_confirmation: false,
-      result,
-      message: commandMessage(inferred.intent, result, risk),
-      audit_event: auditEvent
-    });
+    return {
+      statusCode: 200,
+      body: {
+        ok: result.ok,
+        intent: inferred.intent,
+        tool: inferred.tool,
+        risk,
+        status: result.ok ? "done" : "failed",
+        requires_confirmation: false,
+        result,
+        message: commandMessage(inferred.intent, result, risk),
+        audit_event: auditEvent
+      }
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Command failed.";
     await appendAudit({
-      source: "command",
+      source,
       command: text,
       intent: inferred.intent,
       tool: inferred.tool,
@@ -4821,12 +5412,25 @@ app.post("/api/jarvis/command", async (req, res) => {
       status: "failed",
       detail: message
     });
-    res.status(error.statusCode || 500).json({
-      ok: false,
-      error: message,
-      ...(error?.details && typeof error.details === "object" ? error.details : {})
-    });
+    return {
+      statusCode: error.statusCode || 500,
+      body: {
+        ok: false,
+        error: message,
+        ...(error?.details && typeof error.details === "object" ? error.details : {})
+      }
+    };
   }
+}
+
+app.post("/api/jarvis/command", async (req, res) => {
+  const result = await runJarvisCommandRequest(req.body?.text, { source: "command" });
+  res.status(result.statusCode).json(result.body);
+});
+
+app.post("/api/jarvis/voice-command", async (req, res) => {
+  const result = await runJarvisCommandRequest(req.body?.transcript || req.body?.text, { source: "voice_command" });
+  res.status(result.statusCode).json(result.body);
 });
 
 app.post("/api/jarvis/pending-actions/:id/confirm", async (req, res) => {
@@ -5054,7 +5658,7 @@ app.post("/api/realtime-token", realtimeTokenLimiter, async (_req, res) => {
   }
 });
 
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   app.use(express.static(path.join(root, "dist")));
   app.use((_req, res) => {
     res.sendFile(path.join(root, "dist", "index.html"));
@@ -5076,6 +5680,7 @@ if (process.env.NODE_ENV === "production") {
 
 startSchedulerRunner();
 
-app.listen(port, localHost, () => {
-  console.log(`JARVIS listening on http://localhost:${port}`);
+app.listen(port, listenHost, () => {
+  const url = listenHost === "0.0.0.0" ? `http://0.0.0.0:${port}` : `http://localhost:${port}`;
+  console.log(`JARVIS listening on ${url}`);
 });
