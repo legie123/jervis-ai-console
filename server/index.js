@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import rateLimit from "express-rate-limit";
 import { promisify } from "node:util";
+import { createElevenLabsClient } from "./elevenlabs/client.js";
 import { createWhatsAppExecutor } from "./whatsapp/executor.js";
 import {
   extractWebhookEvents,
@@ -60,6 +61,7 @@ let browserTabCache = { expiresAt: 0, tabs: [] };
 let schedulerTimer = null;
 const pendingActionExecutorIntents = new Set(["calendar_import", "whatsapp_web_open", "whatsapp_send", "close_browser_tab"]);
 const whatsappExecutor = createWhatsAppExecutor({ env: process.env });
+const elevenLabsClient = createElevenLabsClient({ env: process.env });
 
 const app = express();
 
@@ -81,6 +83,13 @@ const realtimeTokenLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many Realtime token requests. Try again in a minute." }
+});
+const ttsLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 12,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many ElevenLabs TTS requests. Try again in a minute." }
 });
 
 const JARVIS_INSTRUCTIONS = `
@@ -2976,6 +2985,7 @@ async function getModuleStatus() {
   const installedApps = await readInstalledApps();
   const whatsappStatus = whatsappExecutor.getStatus();
   const whatsappPrerequisites = await whatsappModePrerequisites();
+  const elevenLabsStatus = elevenLabsClient.getStatus();
   let browserTabs = [];
   let browserTabsStatus = "ready";
   try {
@@ -3043,6 +3053,16 @@ async function getModuleStatus() {
       drafts: whatsappDrafts.length,
       messages: whatsappMessages.length,
       path: path.relative(root, whatsappDraftsPath)
+    },
+    elevenlabs: {
+      status: elevenLabsStatus.status,
+      provider: elevenLabsStatus.provider,
+      configured: elevenLabsStatus.configured,
+      executor_attached: elevenLabsStatus.executor_attached,
+      voice_id: elevenLabsStatus.voice_id,
+      model: elevenLabsStatus.model,
+      output_format: elevenLabsStatus.output_format,
+      endpoint: elevenLabsStatus.endpoint
     },
     audit: {
       status: "ready",
@@ -4163,6 +4183,39 @@ app.post("/api/jarvis/whatsapp-mode", async (req, res) => {
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({ ok: false, error: error instanceof Error ? error.message : "Could not update WhatsApp mode." });
+  }
+});
+
+app.get("/api/jarvis/elevenlabs/status", (_req, res) => {
+  res.json(elevenLabsClient.getStatus());
+});
+
+app.post("/api/jarvis/elevenlabs/tts", ttsLimiter, async (req, res) => {
+  try {
+    const result = await elevenLabsClient.textToSpeech({
+      text: req.body?.text,
+      voice_id: req.body?.voice_id,
+      model_id: req.body?.model_id
+    });
+    await appendAudit({
+      source: "elevenlabs",
+      intent: "text_to_speech",
+      risk: "direct_ok",
+      status: "done",
+      detail: `Generated ElevenLabs audio preview, ${result.character_count} characters.`
+    });
+    res.setHeader("Content-Type", result.content_type);
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Jarvis-Provider", "elevenlabs");
+    res.setHeader("X-Jarvis-Voice-Id", result.voice_id);
+    res.send(result.audio);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Could not generate ElevenLabs speech.",
+      detail: error.detail || undefined,
+      status: elevenLabsClient.getStatus()
+    });
   }
 });
 

@@ -28,6 +28,9 @@ JARVIS is a browser-based realtime voice operations console. The browser owns mi
    OPENAI_API_KEY=
    JARVIS_TOKEN=change-me-local-only
    VITE_JARVIS_TOKEN=change-me-local-only
+   ELEVENLABS_API_KEY=
+   ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+   ELEVENLABS_MODEL=eleven_flash_v2_5
    ```
 
 4. Start local development:
@@ -163,6 +166,7 @@ Max Operator mode does not mean silent unsafe execution. JARVIS can draft, plan,
 - Microphone permission appears only after pressing Start JARVIS with a configured key.
 - A live session reaches Online and plays model audio.
 - Voice interruption works while JARVIS is speaking.
+- ElevenLabs preview requires `ELEVENLABS_API_KEY`; without it the panel shows `Requires setup`.
 - User transcript and assistant transcript appear when transcript events are emitted.
 - Typed fallback command works while offline and while the session is live.
 - Asking “what time is it?” triggers the time tool and returns a voice answer.

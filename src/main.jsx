@@ -161,6 +161,8 @@ function App() {
   const [whatsappExecutor, setWhatsappExecutor] = useState(null);
   const [whatsappLivePhrase, setWhatsappLivePhrase] = useState("");
   const [whatsappModeBusy, setWhatsappModeBusy] = useState(false);
+  const [elevenLabsText, setElevenLabsText] = useState("Good morning, sir. JERVIS voice bridge is standing by.");
+  const [elevenLabsBusy, setElevenLabsBusy] = useState(false);
   const [contacts, setContacts] = useState({ contacts: [], count: 0, allowed: 0 });
   const [contactDraft, setContactDraft] = useState(emptyContactDraft);
   const [contactBusyId, setContactBusyId] = useState("");
@@ -520,6 +522,46 @@ function App() {
       return false;
     } finally {
       setWhatsappModeBusy(false);
+    }
+  }
+
+  async function playElevenLabsPreview() {
+    const text = elevenLabsText.trim();
+    if (!text) {
+      setError("ElevenLabs preview needs text.");
+      return false;
+    }
+
+    setElevenLabsBusy(true);
+    try {
+      const response = await apiFetch("/api/jarvis/elevenlabs/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "ElevenLabs preview failed.");
+      }
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const preview = new Audio(audioUrl);
+      preview.onended = () => URL.revokeObjectURL(audioUrl);
+      preview.onerror = () => URL.revokeObjectURL(audioUrl);
+      await preview.play();
+      addToolLog("elevenlabs", "done", "Audio preview played.");
+      addLine("jarvis", "ElevenLabs audio preview generated.");
+      refreshStatus();
+      refreshAudit();
+      return true;
+    } catch (previewError) {
+      const message = previewError instanceof Error ? previewError.message : "ElevenLabs preview failed.";
+      setError(message);
+      addToolLog("elevenlabs", "failed", message);
+      addLine("jarvis", `ElevenLabs preview failed: ${message}`);
+      return false;
+    } finally {
+      setElevenLabsBusy(false);
     }
   }
 
@@ -1575,6 +1617,7 @@ function App() {
           <StatusTile icon={<Sparkles size={18} />} label="Notify" value={notificationPermission} />
           <StatusTile icon={<Mic size={18} />} label="Mic" value={microphonePermission} />
           <StatusTile icon={<Cpu size={18} />} label="Local ctrl" value={systemStatus?.local_control?.status || "checking"} />
+          <StatusTile icon={<Volume2 size={18} />} label="ElevenLabs" value={systemStatus?.elevenlabs?.status || "checking"} />
         </div>
 
         <div className="operator-band">
@@ -2251,6 +2294,39 @@ function App() {
           ) : (
             <p className="empty-state">No WhatsApp drafts yet. Drafts are local only and never sent.</p>
           )}
+        </PanelSection>
+
+        <PanelSection title="ElevenLabs voice">
+          <div className="inline-editor">
+            <strong>Text-to-speech bridge</strong>
+            <p className="empty-state">
+              Status: {systemStatus?.elevenlabs?.status || "checking"}. Provider: ElevenLabs. Voice: {systemStatus?.elevenlabs?.voice_id || "default"}.
+            </p>
+            <label>
+              <span>Preview text</span>
+              <input
+                value={elevenLabsText}
+                onChange={(event) => setElevenLabsText(event.target.value)}
+                maxLength={1000}
+                placeholder="Type a short JERVIS line"
+              />
+            </label>
+            <div className="panel-actions">
+              <button type="button" onClick={playElevenLabsPreview} disabled={elevenLabsBusy || !elevenLabsText.trim()}>
+                {elevenLabsBusy ? "Generating" : "Play preview"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setElevenLabsText("Good morning, sir. Standing by. Risk gates are armed.")}
+                disabled={elevenLabsBusy}
+              >
+                Reset line
+              </button>
+            </div>
+            {!systemStatus?.elevenlabs?.configured ? (
+              <p className="empty-state">Requires setup: add ELEVENLABS_API_KEY to .env and restart JERVIS.</p>
+            ) : null}
+          </div>
         </PanelSection>
         </div>
 
