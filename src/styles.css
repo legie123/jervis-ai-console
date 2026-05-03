@@ -218,6 +218,58 @@ input:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.access-gate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(91, 231, 255, 0.22);
+  background: rgba(91, 231, 255, 0.06);
+}
+
+.access-gate.is-missing {
+  border-color: rgba(211, 49, 40, 0.5);
+  background: rgba(211, 49, 40, 0.1);
+}
+
+.access-gate span,
+.access-gate p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.access-gate strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.access-gate-actions {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.access-gate input {
+  min-width: 0;
+  height: 34px;
+  border: 1px solid rgba(246, 190, 108, 0.22);
+  background: rgba(3, 2, 2, 0.64);
+  color: var(--ink);
+  padding: 0 10px;
+}
+
+.access-gate button {
+  height: 34px;
+  padding: 0 10px;
+  color: #170809;
+  background: linear-gradient(135deg, var(--gold), var(--amber));
+}
+
 .brand-lockup {
   gap: 13px;
   min-width: 0;
@@ -392,6 +444,7 @@ h2 {
     inset 0 0 58px rgba(246, 190, 108, 0.08);
   animation: dragonBreathe 4.8s ease-in-out infinite;
   transform-style: preserve-3d;
+  overflow: clip;
 }
 
 .orb::before,

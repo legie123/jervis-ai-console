@@ -27,7 +27,7 @@ JARVIS is a browser-based realtime voice operations console. The browser owns mi
    ```bash
    OPENAI_API_KEY=
    JARVIS_TOKEN=change-me-local-only
-   VITE_JARVIS_TOKEN=change-me-local-only
+   VITE_JARVIS_TOKEN=
    ELEVENLABS_API_KEY=
    ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
    ELEVENLABS_MODEL=eleven_flash_v2_5
@@ -47,7 +47,8 @@ JARVIS is a browser-based realtime voice operations console. The browser owns mi
 
 Local access notes:
 
-- The API now requires `X-Jarvis-Key`, supplied by the browser from `VITE_JARVIS_TOKEN`.
+- The API now requires `X-Jarvis-Key`, supplied by the browser from `VITE_JARVIS_TOKEN` locally or from the in-browser Access Gate.
+- For public/cloud deployments, leave `VITE_JARVIS_TOKEN` empty and enter `JARVIS_TOKEN` in the in-browser Access Gate. Do not bake the API key into the JS bundle.
 - The local dev server binds to loopback only. Production binds to `0.0.0.0` for Cloud Run.
 - `/api/realtime-token` is rate-limited.
 

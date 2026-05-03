@@ -31,7 +31,8 @@ import JervisDragonCore from "./visuals/JervisDragonCore.jsx";
 import "./styles.css";
 
 const OPENAI_REALTIME_CALLS_URL = "https://api.openai.com/v1/realtime/calls";
-const JARVIS_LOCAL_TOKEN = import.meta.env.VITE_JARVIS_TOKEN || "";
+const JARVIS_ENV_TOKEN = import.meta.env.VITE_JARVIS_TOKEN || "";
+const JARVIS_BROWSER_TOKEN_KEY = "jarvis.accessToken";
 const emptyContactDraft = {
   name: "",
   phone_e164: "",
@@ -104,6 +105,29 @@ function writeNotifiedAlertKeys(keys) {
   }
 }
 
+function readJarvisAccessToken() {
+  if (JARVIS_ENV_TOKEN) return JARVIS_ENV_TOKEN;
+  try {
+    return localStorage.getItem(JARVIS_BROWSER_TOKEN_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function writeJarvisAccessToken(value) {
+  const clean = String(value || "").trim();
+  try {
+    if (clean) {
+      localStorage.setItem(JARVIS_BROWSER_TOKEN_KEY, clean);
+    } else {
+      localStorage.removeItem(JARVIS_BROWSER_TOKEN_KEY);
+    }
+  } catch {
+    // API calls still fail safely if browser storage is unavailable.
+  }
+  return clean;
+}
+
 async function queryBrowserPermission(name) {
   if (!navigator.permissions?.query) return "unknown";
   try {
@@ -132,13 +156,16 @@ function initialTranscriptLine() {
 
 function apiFetch(url, options = {}) {
   const headers = new Headers(options.headers || {});
-  if (JARVIS_LOCAL_TOKEN) {
-    headers.set("X-Jarvis-Key", JARVIS_LOCAL_TOKEN);
+  const accessToken = readJarvisAccessToken();
+  if (accessToken) {
+    headers.set("X-Jarvis-Key", accessToken);
   }
   return fetch(url, { ...options, headers });
 }
 
 function App() {
+  const [accessTokenDraft, setAccessTokenDraft] = useState("");
+  const [accessTokenReady, setAccessTokenReady] = useState(Boolean(readJarvisAccessToken()));
   const [status, setStatus] = useState("idle");
   const [commandState, setCommandState] = useState("standby");
   const [micEnabled, setMicEnabled] = useState(true);
@@ -826,6 +853,20 @@ function App() {
       },
       ...items
     ].slice(0, 8));
+  }
+
+  function saveAccessToken() {
+    const clean = writeJarvisAccessToken(accessTokenDraft);
+    setAccessTokenReady(Boolean(readJarvisAccessToken()));
+    setAccessTokenDraft("");
+    addToolLog("access", clean ? "ready" : "missing", clean ? "Browser access key saved locally." : "Browser access key cleared.");
+  }
+
+  function clearAccessToken() {
+    writeJarvisAccessToken("");
+    setAccessTokenReady(Boolean(readJarvisAccessToken()));
+    setAccessTokenDraft("");
+    addToolLog("access", JARVIS_ENV_TOKEN ? "env_locked" : "missing", JARVIS_ENV_TOKEN ? "Using build-time access key." : "Browser access key cleared.");
   }
 
   function applyCommandResult(payload) {
@@ -1780,6 +1821,27 @@ function App() {
             </span>
           </div>
         </div>
+
+        {!JARVIS_ENV_TOKEN ? (
+          <div className={`access-gate ${accessTokenReady ? "is-ready" : "is-missing"}`}>
+            <div>
+              <span>Access Gate</span>
+              <strong>{accessTokenReady ? "Browser key armed" : "JARVIS key required"}</strong>
+              <p>{accessTokenReady ? "Key is stored only in this browser." : "Enter JARVIS_TOKEN to unlock protected API calls."}</p>
+            </div>
+            <div className="access-gate-actions">
+              <input
+                type="password"
+                value={accessTokenDraft}
+                onChange={(event) => setAccessTokenDraft(event.target.value)}
+                placeholder="JARVIS_TOKEN"
+                aria-label="JARVIS access key"
+              />
+              <button type="button" onClick={saveAccessToken} disabled={!accessTokenDraft.trim() && !accessTokenReady}>Save</button>
+              {accessTokenReady ? <button type="button" onClick={clearAccessToken}>Clear</button> : null}
+            </div>
+          </div>
+        ) : null}
 
         <div className="room-core">
           <div className={`orb dragon-core has-3d ${isLive || isVoiceActive ? "is-live" : ""}`} aria-hidden="true">
