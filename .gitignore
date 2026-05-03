@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.npm-cache/
+.env
+.env.local
+.env.*.local
+!.env.example
+.DS_Store
+npm-debug.log*
+*.log
+
+# Local operator data. Never publish memory, schedules, contacts, or audit logs.
+data/
+reports/
+daily_audit_*.md
+
+# Local IDE/agent state.
+.claude/
+.antigravity/
+.obsidian/
+.symdexignore
