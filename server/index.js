@@ -10,6 +10,7 @@ import rateLimit from "express-rate-limit";
 import { promisify } from "node:util";
 import { createElevenLabsClient } from "./elevenlabs/client.js";
 import { loadWhatsAppConfig } from "./whatsapp/config.js";
+import { diagnoseWhatsAppCloudApi } from "./whatsapp/diagnostics.js";
 import { createWhatsAppExecutor } from "./whatsapp/executor.js";
 import { WhatsAppCloudApi } from "./whatsapp/client.js";
 import {
@@ -3524,6 +3525,7 @@ async function getModuleStatus() {
       signature_configured: whatsappStatus.app_secret_configured,
       send_enabled: whatsappStatus.send_enabled,
       auto_send_from_webhook: false,
+      diagnostics_endpoint: "/api/jarvis/whatsapp-diagnostics",
       contacts: contacts.length,
       contacts_allowed: contacts.filter((contact) => contactStatusForDraft(contact) === "allowed").length,
       live_ready: whatsappPrerequisites.live_ready,
@@ -4908,6 +4910,24 @@ app.get("/api/jarvis/whatsapp-messages", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : "Could not read WhatsApp messages." });
+  }
+});
+
+app.get("/api/jarvis/whatsapp-diagnostics", async (_req, res) => {
+  try {
+    const diagnostics = await diagnoseWhatsAppCloudApi({ config: whatsappConfig });
+    res.json({
+      ok: true,
+      diagnostics,
+      message: diagnostics.ready_for_meta_send
+        ? "WhatsApp Cloud API assets are reachable."
+        : "WhatsApp Cloud API token cannot access the configured phone number or business account."
+    });
+  } catch (error) {
+    res.status(502).json({
+      ok: false,
+      error: error instanceof Error ? error.message : "Could not diagnose WhatsApp Cloud API access."
+    });
   }
 });
 
