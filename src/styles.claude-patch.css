@@ -1,0 +1,519 @@
+/* styles.claude-patch.css — Faza P0 + P1 (additive overlay)
+ * Author: Claude (sesiunea 2026-05-05)
+ * Imported at end of src/styles.css. Reversibil prin ștergerea liniei @import + acest fișier.
+ *
+ * Scope:
+ *   P0.1 Status grid tile-uri: text taiat (Status S..., Voice c..., etc.)
+ *   P0.2 Mission input: text taiat
+ *   P0.3 Capability chips: labels invisible (.visually-hidden span)
+ *   P0.4 Voice readout: prezență mai puternică
+ *   P0.5 Quick command grid: secondary hierarchy
+ *   P0.6 Active ops tab: stronger indicator
+ *   P1.1 Tooltip pe orice text trunchiat (data-full)
+ *   P1.2 Dragon-core polish (presence ring on listen/speak)
+ *   P1.3 Topbar state-pill enhance
+ */
+
+/* ============================================================
+   P0.1 STATUS TILES — fix overflow taiat + tooltip live
+   ============================================================ */
+
+.status-tile {
+  position: relative;
+  min-width: 0 !important;
+  padding: 8px 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.status-tile > svg {
+  flex-shrink: 0;
+}
+.status-tile span {
+  font-size: 9.5px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  line-height: 1.2 !important;
+}
+.status-tile strong {
+  font-size: 12.5px !important;
+  letter-spacing: 0.01em !important;
+  color: var(--ink, #f8eee1) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.25 !important;
+  max-width: 100%;
+  display: block;
+  cursor: help;
+}
+/* Tooltip: shown on hover via title attr when present */
+.status-tile strong:hover {
+  color: var(--gold, #f6be6c) !important;
+}
+.status-tile:hover {
+  border-color: var(--line-hot, rgba(246,190,108,0.42)) !important;
+  background: rgba(20, 12, 10, 0.55) !important;
+}
+
+/* ============================================================
+   P0.2 MISSION INPUT — extindere
+   ============================================================ */
+
+.mission-strip {
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+.mission-strip > input {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  text-overflow: ellipsis !important;
+  font-size: 13.5px !important;
+}
+.mission-strip > input:focus {
+  text-overflow: clip !important;
+  border-color: var(--gold, #f6be6c) !important;
+  box-shadow: 0 0 0 2px rgba(246, 190, 108, 0.18);
+}
+.mission-strip > button {
+  flex-shrink: 0 !important;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   P0.3 CAPABILITY CHIPS — show labels (un-hide visually-hidden span)
+   ============================================================ */
+
+.capability-toolbar {
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+.capability-chip {
+  flex-direction: row !important;
+  gap: 6px !important;
+  padding: 7px 12px !important;
+  min-width: 0 !important;
+  border-radius: 999px !important;
+  align-items: center !important;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+.capability-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--gold, #f6be6c) !important;
+}
+.capability-chip .visually-hidden {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  color: inherit !important;
+  line-height: 1 !important;
+}
+.capability-chip em {
+  font-size: 9px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  opacity: 0.65;
+  font-style: normal !important;
+  margin-left: 4px;
+}
+
+/* ============================================================
+   P0.4 VOICE READOUT — prezență mai puternică
+   ============================================================ */
+
+.voice-readout {
+  position: relative;
+  border: 1px solid var(--line-hot, rgba(246,190,108,0.42)) !important;
+  background: linear-gradient(180deg, rgba(20,12,10,0.85), rgba(8,6,8,0.92)) !important;
+  padding: 14px 16px !important;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.voice-readout > div > strong {
+  font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  font-size: 17px !important;
+  letter-spacing: 0.01em !important;
+  color: var(--gold, #f6be6c) !important;
+  font-weight: 600 !important;
+}
+.voice-readout > div > span {
+  font-size: 9.5px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+}
+.voice-readout p {
+  font-size: 13.5px !important;
+  line-height: 1.55 !important;
+  color: var(--ink, #f8eee1) !important;
+  margin: 6px 0 0 !important;
+}
+.voice-readout::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold, #f6be6c), transparent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* listening / speaking / thinking states — pulsing border */
+.voice-readout.voice-listening,
+.voice-readout.voice-thinking,
+.voice-readout.voice-speaking,
+.voice-readout.voice-standbyListeningForWake {
+  border-color: var(--gold, #f6be6c) !important;
+  box-shadow: 0 0 22px rgba(246, 190, 108, 0.18);
+}
+.voice-readout.voice-listening::before,
+.voice-readout.voice-speaking::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(246, 190, 108, 0.12), transparent);
+  background-size: 200% 100%;
+  animation: c-readout-shimmer 2.4s linear infinite;
+  pointer-events: none;
+}
+@keyframes c-readout-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* ============================================================
+   P0.5 QUICK COMMAND GRID (right) — secondary hierarchy
+   ============================================================ */
+
+.transcript-panel .quick-command-grid {
+  border-top: 1px dashed var(--line, rgba(246,190,108,0.18));
+  padding-top: 10px;
+}
+.transcript-panel .quick-command-grid::before {
+  content: "Quick";
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted, #b9a99a);
+  margin-bottom: 6px;
+  grid-column: 1 / -1;
+}
+.transcript-panel .quick-command-grid button {
+  font-size: 11.5px !important;
+  background: rgba(14, 8, 10, 0.55) !important;
+  border: 1px solid var(--line, rgba(246,190,108,0.18)) !important;
+  color: var(--ink, #f8eee1) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.transcript-panel .quick-command-grid button:hover {
+  border-color: var(--line-hot, rgba(246,190,108,0.42)) !important;
+  background: rgba(20, 12, 10, 0.75) !important;
+}
+
+/* ============================================================
+   P0.6 ACTIVE OPS TAB — stronger indicator
+   ============================================================ */
+
+.ops-tabs button[aria-selected="true"],
+.ops-tabs .is-active {
+  position: relative;
+  color: var(--gold, #f6be6c) !important;
+  font-weight: 600 !important;
+}
+.ops-tabs button[aria-selected="true"]::after,
+.ops-tabs .is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px; right: 12px; bottom: -3px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold, #f6be6c), var(--amber, #ff8f3f));
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(246, 190, 108, 0.55);
+}
+
+/* ============================================================
+   P1.1 TOPBAR STATE-PILL ENHANCE — make presence pulse subtle
+   ============================================================ */
+
+.state-pill {
+  border: 1px solid var(--line-hot, rgba(246,190,108,0.42)) !important;
+  background: linear-gradient(180deg, rgba(14,8,10,0.55), rgba(8,6,8,0.78)) !important;
+  letter-spacing: 0.05em !important;
+}
+.state-pill.live,
+.state-pill.visual-listening,
+.state-pill.visual-speaking,
+.state-pill.visual-thinking {
+  border-color: var(--gold, #f6be6c) !important;
+  box-shadow: 0 0 14px rgba(246, 190, 108, 0.22);
+}
+.state-pill .state-meter {
+  display: inline-flex;
+  gap: 2px;
+  align-items: end;
+  margin-left: 6px;
+}
+.state-pill .state-meter i {
+  width: 3px;
+  height: 8px;
+  background: var(--gold, #f6be6c);
+  border-radius: 2px;
+  opacity: 0.35;
+  animation: c-meter 1.4s ease-in-out infinite;
+}
+.state-pill .state-meter i:nth-child(2) { animation-delay: 0.18s; }
+.state-pill .state-meter i:nth-child(3) { animation-delay: 0.36s; }
+.state-pill.visual-listening .state-meter i,
+.state-pill.visual-speaking .state-meter i {
+  opacity: 1;
+}
+@keyframes c-meter {
+  0%, 100% { transform: scaleY(0.45); opacity: 0.3; }
+  50%      { transform: scaleY(1.1);  opacity: 0.95; }
+}
+
+/* ============================================================
+   P1.2 DRAGON-CORE — presence ring on listen/speak
+   ============================================================ */
+
+.dragon-core .audio-ring {
+  pointer-events: none;
+}
+.app-shell.state-listening .dragon-core::before,
+.app-shell.state-speaking .dragon-core::before,
+.app-shell.state-thinking .dragon-core::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--gold, #f6be6c);
+  opacity: 0.55;
+  animation: c-presence-ring 2.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes c-presence-ring {
+  0%   { transform: scale(0.95); opacity: 0.55; }
+  100% { transform: scale(1.18); opacity: 0;    }
+}
+
+/* ============================================================
+   P1.3 RESPONSE BUBBLE — premium framing
+   ============================================================ */
+
+.response-bubble {
+  border: 1px solid var(--line, rgba(246,190,108,0.18)) !important;
+  background: linear-gradient(180deg, rgba(20,12,10,0.55), rgba(8,6,8,0.78)) !important;
+  border-radius: 4px;
+  position: relative;
+}
+.response-bubble.tone-warning {
+  border-color: var(--amber, #ff8f3f) !important;
+  box-shadow: 0 0 16px rgba(255, 143, 63, 0.18);
+}
+.response-bubble.tone-critical {
+  border-color: var(--red, #d33128) !important;
+  box-shadow: 0 0 16px rgba(211, 49, 40, 0.22);
+}
+.response-bubble-head span {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 14px !important;
+  letter-spacing: 0.02em !important;
+  color: var(--gold, #f6be6c) !important;
+}
+.response-grid > div > span {
+  font-size: 9.5px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+}
+.response-grid > div > p {
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  color: var(--ink, #f8eee1) !important;
+  margin: 4px 0 0 !important;
+}
+
+/* ============================================================
+   P1.4 FOCUS RINGS UNIVERSAL — keyboard accessibility
+   ============================================================ */
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.capability-chip:focus-visible,
+.pending-row:focus-visible {
+  outline: 2px solid var(--gold, #f6be6c) !important;
+  outline-offset: 2px !important;
+}
+
+/* ============================================================
+   P1.5 SCROLLBAR — discrete bronze (webkit only)
+   ============================================================ */
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: rgba(14, 8, 10, 0.55); }
+::-webkit-scrollbar-thumb { background: var(--line, rgba(246,190,108,0.18)); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line-hot, rgba(246,190,108,0.42)); }
+
+/* ============================================================
+   END Faza P0 + P1
+   ============================================================ */
+
+
+/* ===== P1.5 MODE SWITCHER (added by claude-overlay.js) ===== */
+
+.c-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 16px 0 12px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line, rgba(246,190,108,0.18));
+  border-bottom: 1px solid var(--line, rgba(246,190,108,0.18));
+  background: rgba(14, 8, 10, 0.55);
+  border-radius: 4px;
+}
+.c-modes::before {
+  content: "MODE";
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--muted, #b9a99a);
+  font-weight: 600;
+  margin-right: 4px;
+}
+.c-mode {
+  background: transparent !important;
+  border: 1px solid var(--line, rgba(246,190,108,0.18)) !important;
+  color: var(--muted, #b9a99a) !important;
+  padding: 5px 12px !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  border-radius: 999px !important;
+  min-height: 26px !important;
+  font-weight: 500 !important;
+  transition: all 140ms ease !important;
+  cursor: pointer;
+}
+.c-mode:hover {
+  border-color: var(--line-hot, rgba(246,190,108,0.42)) !important;
+  color: var(--ink, #f8eee1) !important;
+  transform: translateY(-1px) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.c-mode[aria-pressed="true"] {
+  border-color: var(--gold, #f6be6c) !important;
+  color: var(--ink, #f8eee1) !important;
+  background: rgba(246, 190, 108, 0.12) !important;
+  box-shadow: 0 0 12px rgba(246, 190, 108, 0.25) !important;
+}
+
+body[data-uimode="briefing"] .panel-section[data-uimode]:not([data-uimode~="briefing"]) { display: none; }
+body[data-uimode="comm"]     .panel-section[data-uimode]:not([data-uimode~="comm"])     { display: none; }
+body[data-uimode="mission"]  .panel-section[data-uimode]:not([data-uimode~="mission"])  { display: none; }
+body[data-uimode="memory"]   .panel-section[data-uimode]:not([data-uimode~="memory"])   { display: none; }
+body[data-uimode="system"]   .panel-section[data-uimode]:not([data-uimode~="system"])   { display: none; }
+body[data-uimode="all"]      .panel-section { display: block; }
+body:not([data-uimode])      .panel-section { display: block; }
+
+.panel-section { transition: opacity 240ms ease; }
+
+
+/* ===== P1.6 ROOM-COPY + BRAND ===== */
+
+.room-copy h2 {
+  font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  font-weight: 500;
+  font-size: 22px !important;
+  letter-spacing: -0.005em;
+  color: var(--ink, #f8eee1) !important;
+  line-height: 1.25 !important;
+}
+.room-copy .room-kicker {
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+}
+.brand-lockup h1 {
+  font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+}
+.brand-lockup .eyebrow {
+  font-size: 9.5px !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+  font-weight: 500 !important;
+}
+.brand-mark {
+  background: linear-gradient(135deg, var(--gold, #f6be6c) 0%, var(--bronze, #B07B3B) 100%) !important;
+  border-radius: 6px;
+  padding: 6px;
+  color: #1A1610;
+}
+.panel-heading h2 {
+  font-family: "Cormorant Garamond", serif !important;
+  font-weight: 500 !important;
+  font-size: 20px !important;
+}
+.panel-heading .eyebrow {
+  font-size: 9.5px !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: var(--muted, #b9a99a) !important;
+}
+
+/* ===== P1.7 LATEST TOOL BUBBLE + MODAL ===== */
+
+.latest-tool-bubble {
+  background: linear-gradient(180deg, rgba(20,12,10,0.55), rgba(8,6,8,0.78)) !important;
+  border: 1px solid var(--line, rgba(246,190,108,0.18)) !important;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+.latest-tool-bubble::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--gold, #f6be6c), transparent);
+}
+.modal-backdrop {
+  background: rgba(2, 2, 4, 0.78) !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.confirm-modal {
+  border: 1px solid var(--line-hot, rgba(246,190,108,0.42)) !important;
+  background: linear-gradient(180deg, rgba(22,14,10,0.97), rgba(10,6,8,0.98)) !important;
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.6) !important;
+}
+.modal-command {
+  background: rgba(58, 24, 24, 0.35) !important;
+  border: 1px solid var(--red, #d33128) !important;
+}
