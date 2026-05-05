@@ -1,221 +1,124 @@
-# JARVIS Realtime Console
+# Jarvis WhatsApp Bridge
 
-JARVIS is a browser-based realtime voice operations console. The browser owns microphone capture, WebRTC, remote audio playback, transcript rendering, and tool-result forwarding. The server owns `OPENAI_API_KEY`, mints short-lived Realtime client secrets, and exposes a small safe tool layer.
+REAL: WhatsApp Business Cloud API bridge.
 
-## OpenAI guidance used
+This does not read a personal WhatsApp inbox. Official Meta access is for a WhatsApp Business phone number connected to Cloud API. Incoming messages arrive through webhooks. Outgoing messages are sent through Graph API.
 
-- Realtime WebRTC is the right browser path for low-latency speech-to-speech sessions: https://developers.openai.com/api/docs/guides/realtime-webrtc
-- Realtime conversations support session-level tools via `session.tools`, model function calls, `function_call_output`, and a follow-up `response.create`: https://developers.openai.com/api/docs/guides/realtime-conversations
-- Model guidance was checked against the models catalog. `gpt-realtime-1.5` is the preferred voice model for audio in, audio out; `gpt-realtime-mini` is listed as deprecated in the current catalog: https://developers.openai.com/api/docs/models
+## Flow
 
-## Setup
+Presence -> Context recall -> Risk check -> Action draft -> Confirm -> Execute -> Log.
 
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Create local environment:
-
-   ```bash
-   cp .env.example .env
-   ```
-
-3. Add your server-only key:
-
-   ```bash
-   OPENAI_API_KEY=
-   JARVIS_TOKEN=change-me-local-only
-   VITE_JARVIS_TOKEN=
-   ELEVENLABS_API_KEY=
-   ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
-   ELEVENLABS_MODEL=eleven_flash_v2_5
-   ```
-
-4. Start local development:
-
-   ```bash
-   npm run dev
-   ```
-
-5. Open:
-
-   ```text
-   http://localhost:5173
-   ```
-
-Local access notes:
-
-- The API now requires `X-Jarvis-Key`, supplied by the browser from `VITE_JARVIS_TOKEN` locally or from the in-browser Access Gate.
-- For public/cloud deployments, leave `VITE_JARVIS_TOKEN` empty and enter `JARVIS_TOKEN` in the in-browser Access Gate. Do not bake the API key into the JS bundle.
-- The local dev server binds to loopback only. Production binds to `0.0.0.0` for Cloud Run.
-- `/api/realtime-token` is rate-limited.
-
-## WhatsApp Cloud API
-
-JARVIS uses the official Meta WhatsApp Cloud API. It does not use WhatsApp Web automation or `.webjs_auth`.
-
-Required environment values:
+## Run
 
 ```bash
-META_WA_VERIFY_TOKEN=
-META_WA_ACCESS_TOKEN=
-META_WA_PHONE_NUMBER_ID=
-META_WA_BUSINESS_ACCOUNT_ID=
-META_WA_APP_SECRET=
-META_WA_GRAPH_VERSION=v25.0
-JARVIS_OWNER_PHONE_E164=
-WHATSAPP_SEND_ENABLED=false
-WHATSAPP_DRY_RUN=true
+npm install
+cp .env.example .env
+npm start
 ```
 
-Webhook endpoints:
+## Command Center UI
 
-- `GET /api/whatsapp/webhook` verifies Meta `hub.challenge`.
-- `POST /api/whatsapp/webhook` receives inbound messages and status updates.
+REAL: Local JARVIS Command Center is included in `command-center/`.
 
-Safety behavior:
-
-- Only `JARVIS_OWNER_PHONE_E164` is accepted for inbound commands.
-- Non-owner inbound messages are rejected and logged.
-- Webhook replies are always created as drafts plus Pending Actions.
-- Live send never happens from the webhook directly.
-- Real outbound send requires auth, configured Meta credentials, `WHATSAPP_SEND_ENABLED=true`, `WHATSAPP_DRY_RUN=false`, and explicit confirmation.
-
-Cloud Run:
-
-- `Dockerfile` is included for a Node 20 production image.
-- Set secrets as Cloud Run environment variables or Secret Manager bindings.
-- Use the Cloud Run URL as the Meta callback: `https://<service-url>/api/whatsapp/webhook`.
-- Keep dry-run enabled until webhook verification, inbound owner filtering, and draft logging pass.
-
-## Terminal Obsidian helper
-
-A local helper script is available for simple note capture/search against the JARVIS Obsidian vault:
+Run it from this project:
 
 ```bash
-./scripts/jarvis-obsidian-terminal.sh --text "Creeaza notita: Idei Trade AI"
-./scripts/jarvis-obsidian-terminal.sh --text "Cauta notita: Trade"
-./scripts/jarvis-obsidian-terminal.sh --audio /path/to/input.wav
+npm run start:command-center
 ```
 
-Notes:
+Then open:
 
-- Default vault path: `data/obsidian-vault`
-- Supported commands: `Creeaza notita:` and `Cauta notita:`
-- For audio transcription you need a local `whisper-cli` or `whisper` command installed
-- The script writes an audit trail to `data/obsidian-vault/jarvis-terminal.log`
+```text
+http://127.0.0.1:4317
+```
 
-## What is operational now
+This is separate from the WhatsApp bridge process on port `8787`.
+Outbound WhatsApp remains confirmation-gated.
 
-- Realtime voice conversation over WebRTC.
-- Audio input from the browser microphone and audio output from the model.
-- Low-latency turn detection with semantic VAD and interruption.
-- Text transcript display when server transcript events are available.
-- Typed fallback commands work without voice through `/api/jarvis/command`, and use the Realtime data channel when a voice session is live.
-- Persistent audit log stored in `data/jarvis-audit.json`.
-- Local reminder records stored in `data/jarvis-schedule.json`.
-- Server-minted short-lived client secrets; the browser never receives `OPENAI_API_KEY`.
-- Realtime function calling bridge for safe local tools.
-- Max Operator mode for aggressive planning, drafting, and safe local tool execution.
-- Mandatory Obsidian subsystem for local Markdown vault export and plugin catalog lookup.
-- Mandatory Graphify subsystem for project-map status, graph report reading, and command proposals.
-- Local non-sensitive note memory stored in `data/jarvis-memory.json`.
-- UI states for standby, linking, online, muted, recovering, and errors.
+To use the full local bridge:
 
-## Tool layer
+```bash
+npm start
+npm run start:command-center
+```
 
-The model can call these safe tools:
+Command Center connects to the bridge at `http://127.0.0.1:8787` by default.
+Override with `JARVIS_WHATSAPP_BRIDGE_URL`.
 
-- `get_local_time`: returns current date/time.
-- `remember_note`: stores a short non-sensitive local note.
-- `recall_notes`: retrieves recent or matching local notes.
-- `make_task_plan`: converts an objective into an operational checklist.
-- `create_local_reminder`: stores a local reminder record without notifying external people or services.
-- `get_capabilities`: reports what this build can and cannot do.
-- `risk_assessment`: classifies whether an action is direct, confirmation-gated, handoff-only, or disallowed.
-- `draft_action`: prepares messages, plans, checklists, or command proposals without executing them.
-- `search_obsidian_plugins`: searches the local `obsidian-releases` community plugin catalog.
-- `obsidian_status`: checks the local vault and plugin catalog.
-- `export_obsidian_note`: writes Markdown into `data/obsidian-vault`.
-- `graphify_status`: inspects the local Graphify repo and this project's `graphify-out` outputs.
-- `graphify_command_proposal`: prepares exact Graphify commands without running third-party code.
-- `graphify_read_report`: reads `graphify-out/GRAPH_REPORT.md` when a graph already exists.
+Bridge send is DANGEROUS external communication and requires:
 
-The client listens for function call events, calls `/api/jarvis/tool`, sends a `function_call_output` item back over the data channel, then triggers another `response.create` so JARVIS can answer in voice using the tool result. Without a live voice session, text commands go to `/api/jarvis/command`, which parses intent, applies risk gates, executes only safe local tools, and appends the result to `/api/jarvis/audit`.
+```text
+CONFIRM_BRIDGE_SEND
+```
 
-## Guardrails
+Expose `GET/POST /webhooks/whatsapp` publicly with ngrok or deployment, then set that callback URL in Meta App Dashboard.
 
-Max Operator mode does not mean silent unsafe execution. JARVIS can draft, plan, and prepare these actions, but the app must add explicit confirmation gates before enabling:
+## Endpoints
 
-- Sending messages, emails, comments, or forms.
-- Deleting files, notes, emails, meetings, or cloud data.
-- Purchases, banking, subscriptions, or financial actions.
-- Installing software or running generated/downloaded scripts.
-- Account changes, permission changes, OAuth/API key creation, or password workflows.
-- Reading or transmitting sensitive data such as credentials, contact info, payment data, medical/legal data, precise location, logs, browser history, or clipboard contents.
+- `GET /health` checks service state.
+- `GET /webhooks/whatsapp` verifies Meta webhook subscription.
+- `POST /webhooks/whatsapp` receives inbound messages and statuses.
+- `GET /api/whatsapp/messages` lists stored inbound messages.
+- `POST /api/whatsapp/drafts` creates a reply draft.
+- `GET /api/whatsapp/drafts` lists drafts.
+- `POST /api/whatsapp/drafts/:id/confirm` sends one pending draft.
+- `POST /api/voice/speech` creates local speech audio through ElevenLabs.
+- `GET /api/voice/speech` lists generated speech records.
+- `GET /audio/speech/:file` serves generated audio files.
 
-## Developer notes
+## Safety
 
-### Latency
+Outbound WhatsApp is DANGEROUS external communication. This bridge never auto-sends. A reply must be drafted first, then confirmed.
 
-- Keep WebRTC for browser audio. It avoids manual audio chunking and lets model audio arrive as a remote media stream.
-- Keep spoken answers short. Tool output should be summarized, not read as a long dump.
-- Use headphones during testing to reduce echo and false VAD triggers.
-- `semantic_vad` is enabled with `interrupt_response: true` for natural turn-taking.
+In production, `WHATSAPP_APP_SECRET` is required so webhook signatures can be verified.
 
-### Session lifecycle
+ElevenLabs TTS is DANGEROUS third-party text transfer. Do not send secrets, private client data, or trading account details as speech input.
 
-- The browser asks `/api/realtime-token` for a fresh short-lived client secret.
-- The browser creates an `RTCPeerConnection`, adds the microphone track, creates an SDP offer, and posts that SDP to `/v1/realtime/calls`.
-- Ending the session closes the data channel, peer connection, and microphone tracks.
-- Reconnect mints a fresh client secret and starts a new session.
-- Realtime sessions are temporary; do not reuse old client secrets.
+## ElevenLabs
 
-### Permissions
+Set `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICE_ID`, then:
 
-- Microphone access requires browser permission. `localhost` is allowed for development.
-- Autoplay can be blocked until a user gesture. The app starts from a button click, which normally satisfies that requirement.
-- If permission is denied, reset site permissions in the browser and reconnect.
+```bash
+curl -X POST http://localhost:8787/api/voice/speech \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Salut. JARVIS este conectat la ElevenLabs."}'
+```
 
-### Error recovery
+The response returns `speech.audioUrl`, a local MP3 URL.
 
-- `RTCPeerConnection.connectionState` drives the signal display.
-- `failed` or `disconnected` states trigger a short reconnect attempt.
-- Token, SDP, and Realtime event errors surface in the UI.
-- Missing `OPENAI_API_KEY` is detected before microphone permission is requested.
+Optional alternate voice:
 
-### Obsidian and Graphify
+```bash
+ELEVENLABS_ALT_VOICE_ID=2ajXGJNYBR0iNHpS4VZb
+```
 
-- Obsidian data comes from `../3rd_party_repos/obsidian-releases`.
-- JARVIS exports notes to `data/obsidian-vault`, which can be opened as an Obsidian vault.
-- Graphify is discovered at `../3rd_party_repos/graphify`.
-- JARVIS can inspect Graphify availability and prepare commands.
-- Running the Graphify executable is intentionally not automatic because it executes third-party Python code. Ask JARVIS for the command proposal, then explicitly confirm if you want it run.
+Use it with:
 
-## Validation checklist
+```bash
+curl -X POST http://localhost:8787/api/voice/speech \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Test voce alternativa.","voice":"alternate"}'
+```
 
-- Page loads at `http://localhost:5173` and shows `JARVIS`.
-- `/api/config` returns model, voice, key readiness, and tool names.
-- `/api/jarvis/status` reports server, Realtime, memory, audit, Obsidian, and Graphify status.
-- `/api/jarvis/command` accepts a typed fallback command and returns intent, risk, status, and audit event.
-- `/api/jarvis/audit` returns recent audit events.
-- Missing `OPENAI_API_KEY` shows a clear error before any microphone prompt.
-- Microphone permission appears only after pressing Start JARVIS with a configured key.
-- A live session reaches Online and plays model audio.
-- Voice interruption works while JARVIS is speaking.
-- ElevenLabs preview requires `ELEVENLABS_API_KEY`; without it the panel shows `Requires setup`.
-- User transcript and assistant transcript appear when transcript events are emitted.
-- Typed fallback command works while offline and while the session is live.
-- Asking “what time is it?” triggers the time tool and returns a voice answer.
-- Asking “can you do this without limits?” triggers risk assessment when the next action could affect the outside world.
-- Asking for a risky action produces a draft or handoff path rather than silent execution.
-- Asking for Obsidian plugins returns results from the local Obsidian releases catalog.
-- Asking to save a mission note exports Markdown into the local Obsidian vault.
-- Asking for Graphify status reports whether `graphify-out` exists.
-- Saying “remember that...” stores a local note and updates the Memory panel.
-- “Amintește-mi...” creates a local reminder without notifying anyone externally.
-- Saying “what do you remember?” recalls local notes.
-- Reconnect creates a new session and restores audio.
-- Ending the session stops microphone capture.
+## Clone a Private Voice
+
+REAL: Uses ElevenLabs Instant Voice Clone API.
+
+DANGEROUS: Clone only your own voice or a voice you have explicit permission to clone.
+
+Put clean audio samples in a local folder, then run:
+
+```bash
+npm run voice:clone -- \
+  --name "Jarvis Private Voice" \
+  --files ./samples/voice-1.wav,./samples/voice-2.mp3 \
+  --description "Private Romanian Jarvis voice" \
+  --labels '{"language":"ro","accent":"romanian"}' \
+  --consent
+```
+
+The script prints `voice_id`. Put that ID in `.env`:
+
+```bash
+ELEVENLABS_VOICE_ID=new_voice_id_here
+```

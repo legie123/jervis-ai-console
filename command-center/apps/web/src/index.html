@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JARVIS Command Center</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <h1>JARVIS Command Center</h1>
+          <p id="statusLine">Checking local operator...</p>
+        </div>
+        <button id="healthBtn" type="button">Health</button>
+      </section>
+
+      <section class="grid">
+        <form id="missionForm" class="panel">
+          <h2>Mission</h2>
+          <label for="missionInput">Input</label>
+          <textarea id="missionInput" rows="5" placeholder="Example: draft whatsapp reply for client"></textarea>
+          <button type="submit">Plan Mission</button>
+          <pre id="missionOutput"></pre>
+        </form>
+
+        <form id="draftForm" class="panel">
+          <h2>WhatsApp Draft</h2>
+          <label for="draftTo">Recipient</label>
+          <input id="draftTo" placeholder="40700000000" />
+          <label for="draftBody">Message</label>
+          <textarea id="draftBody" rows="5" placeholder="Draft only. No real send."></textarea>
+          <label for="draftSchedule">Schedule</label>
+          <input id="draftSchedule" type="datetime-local" />
+          <button type="submit">Create Draft</button>
+          <button id="bridgeCreateDraftBtn" type="button">Create In Bridge</button>
+          <p class="risk">DANGEROUS: external communication. Real send disabled.</p>
+          <pre id="draftOutput"></pre>
+        </form>
+
+        <section class="panel">
+          <div class="row">
+            <h2>Inbox</h2>
+            <button id="refreshInboxBtn" type="button">Refresh</button>
+          </div>
+          <div id="inboxList" class="list"></div>
+        </section>
+
+        <form id="sendForm" class="panel">
+          <h2>Send Gate</h2>
+          <label for="sendDraftId">Draft ID</label>
+          <input id="sendDraftId" placeholder="wa_draft_..." />
+          <label for="sendToken">Confirmation Token</label>
+          <input id="sendToken" placeholder="CONFIRM_SEND" />
+          <button class="danger" type="submit">Send WhatsApp</button>
+          <button id="bridgeSendBtn" class="danger" type="button">Send Via Bridge</button>
+          <p class="risk">REAL send only works when `.env` enables WhatsApp Cloud API.</p>
+          <pre id="sendOutput"></pre>
+        </form>
+
+        <section class="panel">
+          <div class="row">
+            <h2>WhatsApp Bridge</h2>
+            <button id="bridgeStatusBtn" type="button">Check</button>
+          </div>
+          <p id="bridgeStatus">Bridge not checked.</p>
+          <button id="bridgePreflightBtn" type="button">Preflight Send Config</button>
+          <label for="bridgeToken">Bridge Send Token</label>
+          <input id="bridgeToken" placeholder="CONFIRM_BRIDGE_SEND" />
+          <div class="button-row">
+            <button id="bridgeInboxBtn" type="button">Load Inbox</button>
+            <button id="bridgeDraftsBtn" type="button">Load Drafts</button>
+          </div>
+          <div class="bridge-columns">
+            <div>
+              <h3>Bridge Inbox</h3>
+              <div id="bridgeInboxList" class="list"></div>
+            </div>
+            <div>
+              <h3>Bridge Drafts</h3>
+              <div id="bridgeDraftList" class="list"></div>
+            </div>
+          </div>
+          <pre id="bridgeOutput"></pre>
+        </section>
+
+        <section class="panel">
+          <div class="row">
+            <h2>Drafts</h2>
+            <button id="refreshDraftsBtn" type="button">Refresh</button>
+          </div>
+          <div id="draftList" class="list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="row">
+            <h2>Scheduler</h2>
+            <button id="runDueBtn" type="button">Run Due</button>
+          </div>
+          <p id="schedulerStatus">Scheduler loop checking...</p>
+          <div id="jobList" class="list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="row">
+            <h2>Audit</h2>
+            <button id="refreshAuditBtn" type="button">Refresh</button>
+          </div>
+          <div id="auditList" class="list"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Backup</h2>
+          <label for="backupLabel">Label</label>
+          <input id="backupLabel" placeholder="manual" />
+          <button id="backupBtn" type="button">Create Backup</button>
+          <button id="exportStateBtn" type="button">Export State</button>
+          <pre id="backupOutput"></pre>
+        </section>
+
+        <section class="panel">
+          <h2>Obsidian</h2>
+          <label for="obsidianToken">Confirmation Token</label>
+          <input id="obsidianToken" placeholder="SYNC_OBSIDIAN" />
+          <button id="obsidianSyncBtn" type="button">Sync Summary</button>
+          <p class="risk">Writes only when vault path and env gate are enabled.</p>
+          <pre id="obsidianOutput"></pre>
+        </section>
+
+        <section class="panel">
+          <h2>Graphify</h2>
+          <button id="graphifyExportBtn" type="button">Export &amp; View Map</button>
+          <p class="risk">Exports local operational map JSON and renders it below.</p>
+          <div class="graph-toolbar">
+            <label for="graphSearch">Search</label>
+            <input id="graphSearch" placeholder="node id, label, status, type, risk" />
+            <button id="graphZoomOutBtn" type="button">-</button>
+            <button id="graphZoomInBtn" type="button">+</button>
+            <button id="graphResetBtn" type="button">Reset</button>
+            <span id="graphMatchCount">0 matches</span>
+          </div>
+          <div id="graphCounts" class="graph-counts"></div>
+          <div id="graphFilters" class="graph-filters"></div>
+          <div class="graph-layout">
+            <div class="graph-viewport">
+              <svg id="graphSvg" viewBox="0 0 1000 660" role="img" aria-label="Graphify operational map"></svg>
+            </div>
+            <pre id="graphNodeDetails">Select a graph node.</pre>
+          </div>
+          <pre id="graphifyOutput"></pre>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

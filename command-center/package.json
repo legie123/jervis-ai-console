@@ -1,0 +1,24 @@
+{
+  "name": "jarvis-command-center",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "healthcheck": "node apps/operator/src/healthcheck.js",
+    "start:operator": "node apps/operator/src/index.js",
+    "start:web": "node apps/operator/src/server.js",
+    "scheduler:run": "node apps/operator/src/run-scheduler.js",
+    "backup": "node apps/operator/src/backup.js",
+    "state:export": "node apps/operator/src/export-state.js",
+    "obsidian:sync": "node apps/operator/src/sync-obsidian.js",
+    "graphify:export": "node apps/operator/src/export-graphify.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
