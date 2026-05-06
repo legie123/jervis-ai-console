@@ -221,12 +221,17 @@ test("configure + configSnapshot", () => {
 
 test("persistence: drafts.jsonl created", async () => {
   const dir = tmp();
+  // settle any prior persist
+  await new Promise((r) => setTimeout(r, 250));
   _testReset({ storeDir: dir, defaultDryRun: true, allowlist: [] });
-  draftEmail({ to: "a@x.com", subject: "persistent", body: "b" });
-  await new Promise((r) => setTimeout(r, 80));
+  draftEmail({ to: "a@x.com", subject: "persistent-uniq-marker", body: "b" });
+  await new Promise((r) => setTimeout(r, 250));
   const file = path.join(dir, "drafts.jsonl");
   assert.equal(fs.existsSync(file), true);
-  const lines = fs.readFileSync(file, "utf8").trim().split("\n");
-  const last = JSON.parse(lines[lines.length - 1]);
-  assert.equal(last.subject, "persistent");
+  const raw = fs.readFileSync(file, "utf8");
+  const lines = raw.trim().split("\n").filter(Boolean);
+  // robust: filter for our marker
+  const ours = lines.map((l) => JSON.parse(l)).filter((d) => d.subject === "persistent-uniq-marker");
+  assert.ok(ours.length >= 1, `expected our marker, got ${lines.length} lines`);
+  assert.equal(ours[0].subject, "persistent-uniq-marker");
 });

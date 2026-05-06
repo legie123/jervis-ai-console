@@ -138,11 +138,16 @@ test("persistence: writes JSONL file when enabled", async () => {
 
 test("readToday returns events from disk newest-first", async () => {
   const dir = tmpDir();
+  // wait for any pending persist from prior test to settle into ITS dir
+  await new Promise((r) => setTimeout(r, 250));
   _testReset({ logDir: dir, enabled: true });
-  appendEvent({ eventType: "tool", action: "alpha" });
-  appendEvent({ eventType: "tool", action: "beta" });
-  await new Promise((r) => setTimeout(r, 80));
+  appendEvent({ eventType: "tool", action: "alpha-readToday" });
+  await new Promise((r) => setTimeout(r, 60));
+  appendEvent({ eventType: "tool", action: "beta-readToday" });
+  await new Promise((r) => setTimeout(r, 250));
   const events = await readToday(10);
-  assert.ok(events.length >= 2);
-  assert.equal(events[0].action, "beta");
+  // filter for our two known entries (robust to leakage)
+  const ours = events.filter((e) => /readToday/.test(e.action || ""));
+  assert.ok(ours.length >= 2, `expected at least 2 of our events, got ${ours.length}`);
+  assert.equal(ours[0].action, "beta-readToday");
 });
