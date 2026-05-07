@@ -1,0 +1,345 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #111318;
+  color: #eef1f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  min-height: 40px;
+  border: 1px solid #566070;
+  background: #eef1f5;
+  color: #111318;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #cfd7e3;
+}
+
+button.danger {
+  border-color: #ffb4a8;
+  background: #3a1818;
+  color: #ffddd8;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #2a303a;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+h3 {
+  color: #c9d1dc;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#statusLine {
+  margin-top: 6px;
+  color: #aab3c2;
+}
+
+#schedulerStatus {
+  color: #aab3c2;
+  margin-bottom: 12px;
+}
+
+#bridgeStatus {
+  color: #aab3c2;
+  margin-bottom: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 20px;
+}
+
+.panel {
+  border: 1px solid #2a303a;
+  background: #181c23;
+  padding: 16px;
+}
+
+form {
+  display: grid;
+  gap: 10px;
+}
+
+label {
+  color: #c9d1dc;
+  font-size: 13px;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid #343c48;
+  background: #101319;
+  color: #eef1f5;
+  padding: 10px;
+  resize: vertical;
+}
+
+pre {
+  min-height: 80px;
+  overflow: auto;
+  border: 1px solid #2a303a;
+  background: #101319;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.button-row,
+.bridge-columns {
+  display: grid;
+  gap: 10px;
+}
+
+.button-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 12px 0;
+}
+
+.bridge-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.risk {
+  color: #ffb4a8;
+  font-size: 13px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid #343c48;
+  background: #101319;
+  padding: 12px;
+}
+
+.item strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.item p {
+  color: #c9d1dc;
+  margin-bottom: 8px;
+}
+
+.item button + button {
+  margin-left: 8px;
+}
+
+.graph-counts,
+.graph-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.graph-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) 40px 40px auto auto;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.graph-toolbar input {
+  min-width: 0;
+}
+
+.graph-toolbar button {
+  min-width: 40px;
+}
+
+#graphMatchCount {
+  color: #aab3c2;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.graph-counts span,
+.graph-filter {
+  border: 1px solid #343c48;
+  background: #101319;
+  color: #c9d1dc;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.graph-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.graph-filter input {
+  width: auto;
+}
+
+.graph-swatch {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+}
+
+.graph-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: 12px;
+}
+
+.graph-viewport {
+  min-height: 460px;
+  overflow: hidden;
+  border: 1px solid #2a303a;
+  background: #101319;
+  touch-action: none;
+}
+
+#graphSvg {
+  width: 100%;
+  height: min(64vh, 660px);
+  min-height: 460px;
+  display: block;
+}
+
+#graphNodeDetails {
+  min-height: 460px;
+  max-height: 660px;
+}
+
+.graph-edge {
+  stroke: #4b5565;
+  stroke-width: 1.4;
+}
+
+.graph-edge-label {
+  fill: #8e99aa;
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+.graph-node {
+  cursor: pointer;
+}
+
+.graph-node:focus circle,
+.graph-node:hover circle,
+.graph-node-match circle,
+.graph-node-related circle,
+.graph-node-selected circle {
+  stroke: #eef1f5;
+  stroke-width: 3;
+}
+
+.graph-node-related circle {
+  stroke: #ffd54f;
+}
+
+.graph-node-selected circle {
+  stroke: #ffffff;
+  stroke-width: 4;
+}
+
+.graph-node circle {
+  stroke: #111318;
+  stroke-width: 2;
+}
+
+.graph-node-label {
+  fill: #eef1f5;
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+.graph-node-status {
+  fill: #aab3c2;
+  font-size: 10px;
+  text-anchor: middle;
+}
+
+@media (max-width: 820px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .graph-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-toolbar {
+    grid-template-columns: 1fr 1fr 40px 40px;
+  }
+
+  .bridge-columns,
+  .button-row {
+    grid-template-columns: 1fr;
+  }
+
+  .graph-toolbar label,
+  #graphMatchCount {
+    grid-column: 1 / -1;
+  }
+}
