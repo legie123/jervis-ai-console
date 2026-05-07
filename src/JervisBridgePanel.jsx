@@ -12,7 +12,10 @@
 
 import React, { useEffect, useState, useRef } from "react";
 
-const ENDPOINT = (typeof window !== "undefined" && window.JERVIS_BRIDGE_URL) || "http://localhost:7777";
+const ENDPOINT =
+  import.meta.env?.VITE_JERVIS_BRIDGE_URL ||
+  (typeof window !== "undefined" && window.JERVIS_BRIDGE_URL) ||
+  "http://localhost:7777";
 const POLL_MS  = 5000;
 
 const COLOR = {
@@ -59,6 +62,15 @@ export default function JervisBridgePanel() {
     timerRef.current = setInterval(poll, POLL_MS);
     return () => { cancelled = true; clearInterval(timerRef.current); };
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const connected = !!data && !error;
   const alert = (data?.alert || "").toUpperCase();
@@ -162,6 +174,7 @@ export default function JervisBridgePanel() {
         body: JSON.stringify({ level }),
       });
     } catch {}
+    setTimeout(() => setOpen(false), 1500);
   }
 }
 
