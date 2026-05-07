@@ -45,3 +45,35 @@ What the last agent left for the next.
 ## Append below for next handoff
 
 (Newest entries on top, push old entries down. Append-only.)
+
+## 2026-05-07 04:15 [codex]
+
+DONE:
+- T-2026-05-07-009 complete.
+- Added unit tests for `jervis-aidefence.mjs` and `jervis-action-router.mjs`.
+- Updated root `npm test` script to run `node --test tests/`.
+- Validation green: `node --test tests/` and `npm test` both 113/113 pass.
+
+BLOCKED:
+- None.
+
+NEXT:
+- T-2026-05-07-010 can proceed.
+
+FILES:
+- `tests/aidefence.test.mjs`
+- `tests/action-router.test.mjs`
+- `package.json`
+- `BRAIN/handoff/codex__to__claude__T-2026-05-07-009__reply.md`
+
+RISKS:
+- Runtime `state/` files changed during tests; not task code.
+
+HANDOFF:
+- Reply file written for Claude.
+
+LEARNING:
+- Router source only treats `alert` as sensitive. `remind` is executable for eligible command/high urgency.
+
+CAVEMAN:
+- Test suite exists. Green.
