@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Activity,
@@ -24,15 +24,20 @@ import {
 import { createAudioReactiveMeter } from "./voice/audioReactive.js";
 import {
   createJervisVoiceController,
+  isSpeechRecognitionSupported,
   JERVIS_GREETING,
   VOICE_UNAVAILABLE_MESSAGE
 } from "./voice/jervisVoice.js";
-import JervisDragonCore from "./visuals/JervisDragonCore.jsx";
 import "./styles.css";
+import JervisBridgePanel from "./JervisBridgePanel.jsx";
+
+const JervisDragonCore = lazy(() => import("./visuals/JervisDragonCore.jsx"));
 
 const OPENAI_REALTIME_CALLS_URL = "https://api.openai.com/v1/realtime/calls";
 const JARVIS_ENV_TOKEN = import.meta.env.VITE_JARVIS_TOKEN || "";
 const JARVIS_BROWSER_TOKEN_KEY = "jarvis.accessToken";
+const JARVIS_CORE_MODE_KEY = "jarvis.coreMode";
+const JARVIS_CORE_MODE_MANUAL_KEY = "jarvis.coreModeManual";
 const emptyContactDraft = {
   name: "",
   phone_e164: "",
@@ -72,7 +77,13 @@ const capabilityCards = [
 
 function statusTone(value) {
   const clean = String(value || "").toLowerCase();
-  if (/\b[1-9]\d*\s+active\b/.test(clean) || clean.includes("blocked") || clean.includes("failed") || clean.includes("error")) {
+  if (
+    /\b[1-9]\d*\s+active\b/.test(clean) ||
+    clean.includes("blocked") ||
+    clean.includes("failed") ||
+    clean.includes("error") ||
+    clean.includes("unavailable")
+  ) {
     return "critical";
   }
   if (clean.includes("awaiting") || clean.includes("confirmation") || clean.includes("armed") || clean.includes("warning")) {
@@ -126,6 +137,50 @@ function writeJarvisAccessToken(value) {
     // API calls still fail safely if browser storage is unavailable.
   }
   return clean;
+}
+
+function shouldPreferLiteCore() {
+  try {
+    const mobileWidth = window.matchMedia?.("(max-width: 700px)")?.matches;
+    const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const lowMemory = typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4;
+    const lowCpu = typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 4;
+    return Boolean(reducedMotion || mobileWidth || (coarsePointer && (lowMemory || lowCpu)));
+  } catch {
+    return false;
+  }
+}
+
+function readCoreMode() {
+  try {
+    const stored = localStorage.getItem(JARVIS_CORE_MODE_KEY);
+    if (stored === "lite" || stored === "3d") return stored;
+  } catch {
+    // Fall through to automatic default.
+  }
+  return shouldPreferLiteCore() ? "lite" : "3d";
+}
+
+function writeCoreMode(value, { manual = true } = {}) {
+  const mode = value === "lite" ? "lite" : "3d";
+  try {
+    localStorage.setItem(JARVIS_CORE_MODE_KEY, mode);
+    if (manual) {
+      localStorage.setItem(JARVIS_CORE_MODE_MANUAL_KEY, "true");
+    }
+  } catch {
+    // Visual preference only. Default 3D remains available.
+  }
+  return mode;
+}
+
+function hasManualCoreMode() {
+  try {
+    return localStorage.getItem(JARVIS_CORE_MODE_MANUAL_KEY) === "true";
+  } catch {
+    return true;
+  }
 }
 
 async function queryBrowserPermission(name) {
@@ -232,6 +287,8 @@ function App() {
   const [voiceError, setVoiceError] = useState("");
   const [voiceVolume, setVoiceVolume] = useState(0);
   const [voiceSpeakingLevel, setVoiceSpeakingLevel] = useState(0);
+  const [coreMode, setCoreMode] = useState(readCoreMode);
+  const [coreModeAuto, setCoreModeAuto] = useState(() => !hasManualCoreMode());
 
   const pcRef = useRef(null);
   const dcRef = useRef(null);
@@ -336,6 +393,24 @@ function App() {
       audioMeterRef.current?.stop();
       cleanupSession();
     };
+  }, []);
+
+  useEffect(() => {
+    if (hasManualCoreMode()) {
+      setCoreModeAuto(false);
+      return undefined;
+    }
+
+    const media = window.matchMedia?.("(max-width: 700px)");
+    const syncAutoCoreMode = () => {
+      const nextMode = shouldPreferLiteCore() ? "lite" : "3d";
+      setCoreMode(writeCoreMode(nextMode, { manual: false }));
+      setCoreModeAuto(true);
+    };
+
+    syncAutoCoreMode();
+    media?.addEventListener?.("change", syncAutoCoreMode);
+    return () => media?.removeEventListener?.("change", syncAutoCoreMode);
   }, []);
 
   useEffect(() => {
@@ -639,6 +714,55 @@ function App() {
       addLine("jarvis", `ElevenLabs preview failed: ${message}`);
       return false;
     } finally {
+      setElevenLabsBusy(false);
+    }
+  }
+
+  async function playElevenLabsVoiceTest() {
+    const text = "JARVIS online. ElevenLabs voice is active.";
+    setElevenLabsBusy(true);
+    setVoiceError("");
+    setVoiceResponse(text);
+    setVoiceState("speaking");
+    startSpeakingMeter();
+
+    try {
+      const response = await apiFetch("/api/jarvis/elevenlabs/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        const detail = [payload.error, payload.code, payload.recovery].filter(Boolean).join(" ");
+        throw new Error(detail || "ElevenLabs voice test failed.");
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      await new Promise((resolve, reject) => {
+        const audio = new Audio(audioUrl);
+        audio.onended = resolve;
+        audio.onerror = () => reject(new Error("ElevenLabs audio playback failed."));
+        audio.play().catch(reject);
+      }).finally(() => URL.revokeObjectURL(audioUrl));
+
+      addToolLog("elevenlabs", "done", "Primary JARVIS voice played through ElevenLabs.");
+      addLine("jarvis", "ElevenLabs voice test played.");
+      refreshStatus();
+      refreshAudit();
+      setVoiceState("done");
+      return true;
+    } catch (voiceTestError) {
+      const message = voiceTestError instanceof Error ? voiceTestError.message : "ElevenLabs voice test failed.";
+      setVoiceError(message);
+      setVoiceState("blocked");
+      setError(message);
+      addToolLog("elevenlabs", "failed", message);
+      addLine("jarvis", `ElevenLabs voice test failed: ${message}`);
+      return false;
+    } finally {
+      stopSpeakingMeter();
       setElevenLabsBusy(false);
     }
   }
@@ -1248,7 +1372,43 @@ function App() {
   async function speakWithMeter(text, options = {}) {
     startSpeakingMeter();
     try {
-      await voiceControllerRef.current?.speak(text, options);
+      const clean = String(text || "").trim();
+      if (!clean) return;
+
+      voiceControllerRef.current?.pauseRecognition();
+      setVoiceState(options.state || "speaking");
+      setVoiceResponse(clean);
+
+      if (options.externalTts === true && systemStatus?.elevenlabs?.configured) {
+        try {
+          const response = await apiFetch("/api/jarvis/elevenlabs/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: clean })
+          });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            const detail = [payload.error, payload.code, payload.recovery].filter(Boolean).join(" ");
+            throw new Error(detail || "ElevenLabs speech failed.");
+          }
+
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          await new Promise((resolve, reject) => {
+            const audio = new Audio(audioUrl);
+            audio.onended = resolve;
+            audio.onerror = () => reject(new Error("ElevenLabs audio playback failed."));
+            audio.play().catch(reject);
+          }).finally(() => URL.revokeObjectURL(audioUrl));
+          addToolLog("elevenlabs", "speaking", "JARVIS response played through ElevenLabs.");
+          return;
+        } catch (speechError) {
+          const message = speechError instanceof Error ? speechError.message : "ElevenLabs speech failed.";
+          addToolLog("elevenlabs", "fallback", message);
+        }
+      }
+
+      await voiceControllerRef.current?.speak(clean, options);
     } finally {
       stopSpeakingMeter();
     }
@@ -1371,6 +1531,10 @@ function App() {
 
   async function startVoiceOperator() {
     clearTimeout(reconnectTimer.current);
+    voiceControllerRef.current?.stop();
+    voiceControllerRef.current = null;
+    audioMeterRef.current?.stop();
+    audioMeterRef.current = null;
     cleanupSession();
     setError("");
     setVoiceError("");
@@ -1381,7 +1545,15 @@ function App() {
     setSignal("requesting mic");
     setMicEnabled(true);
 
-    audioMeterRef.current?.stop();
+    if (!isSpeechRecognitionSupported()) {
+      setStatus("idle");
+      setVoiceState("unavailable");
+      setVoiceError(VOICE_UNAVAILABLE_MESSAGE);
+      setSignal("voice unavailable");
+      addToolLog("voice_wake", "failed", VOICE_UNAVAILABLE_MESSAGE);
+      return false;
+    }
+
     audioMeterRef.current = createAudioReactiveMeter({
       onLevel: setVoiceVolume,
       onError: (message) => {
@@ -1410,7 +1582,9 @@ function App() {
 
   function stopVoiceOperator() {
     voiceControllerRef.current?.stop();
+    voiceControllerRef.current = null;
     audioMeterRef.current?.stop();
+    audioMeterRef.current = null;
     stopSpeakingMeter();
     setVoiceVolume(0);
     setVoiceWakeTranscript("");
@@ -1793,6 +1967,13 @@ function App() {
     return "unknown";
   }
 
+  function toggleCoreMode() {
+    const nextMode = coreMode === "3d" ? "lite" : "3d";
+    setCoreMode(writeCoreMode(nextMode));
+    setCoreModeAuto(false);
+    addToolLog("visual_core", "done", nextMode === "3d" ? "3D core enabled." : "Lite core enabled. Three.js skipped.");
+  }
+
   return (
     <>
     <button className="mobile-orb-button" type="button" onClick={() => setMobileOpen(true)} aria-label="Open JERVIS assistant">
@@ -1845,8 +2026,12 @@ function App() {
         ) : null}
 
         <div className="room-core">
-          <div className={`orb dragon-core has-3d ${isLive || isVoiceActive ? "is-live" : ""}`} aria-hidden="true">
-            <JervisDragonCore state={visualState} volume={voiceVolume} speakingLevel={voiceSpeakingLevel} />
+          <div className={`orb dragon-core ${coreMode === "3d" ? "has-3d" : "is-lite"} ${isLive || isVoiceActive ? "is-live" : ""}`} aria-hidden="true">
+            {coreMode === "3d" ? (
+              <Suspense fallback={<div className="dragon-3d-canvas is-loading" />}>
+                <JervisDragonCore state={visualState} volume={voiceVolume} speakingLevel={voiceSpeakingLevel} />
+              </Suspense>
+            ) : null}
             <div className="smoke-field" />
             <div className="particle-field">
               <span />
@@ -1862,6 +2047,68 @@ function App() {
             <div className="audio-ring ring-c" />
             <div className="energy-trail" />
             <div className="dragon-head">
+              <svg className="dragon-sigil" viewBox="0 0 220 220" focusable="false" role="presentation">
+                <defs>
+                  <linearGradient id="dragonSigilBody" x1="32" x2="188" y1="22" y2="198" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stopColor="#5be7ff" />
+                    <stop offset="0.28" stopColor="#ffe18a" />
+                    <stop offset="0.58" stopColor="#ff8f3f" />
+                    <stop offset="1" stopColor="#d33128" />
+                  </linearGradient>
+                  <linearGradient id="dragonSigilShadow" x1="74" x2="146" y1="34" y2="188" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stopColor="#16060a" stopOpacity="0.18" />
+                    <stop offset="1" stopColor="#060203" stopOpacity="0.92" />
+                  </linearGradient>
+                  <filter id="dragonSigilGlow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="3.6" result="blur" />
+                    <feColorMatrix
+                      in="blur"
+                      type="matrix"
+                      values="1 0 0 0 0.96 0 1 0 0 0.58 0 0 1 0 0.18 0 0 0 0.72 0"
+                    />
+                    <feMerge>
+                      <feMergeNode />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path
+                  className="sigil-neck"
+                  d="M109 62C96 84 83 99 63 112c24 1 44 7 58 22 12 13 15 30 6 51 25-12 44-30 49-56 5-27-7-51-31-66-10-6-23-8-36-1Z"
+                />
+                <path
+                  className="sigil-head-plate"
+                  d="M121 35c-10 3-20 11-28 24-7 12-11 27-11 43 12-6 25-11 41-12 14-1 27 1 39 7-5-16-13-31-25-43l20-23-31 13-5-9Z"
+                />
+                <path
+                  className="sigil-jaw"
+                  d="M84 104c15 3 32 3 53-2l-18 26c-11 16-27 19-45 8 15-3 20-13 10-32Z"
+                />
+                <path
+                  className="sigil-horn sigil-horn-left"
+                  d="M94 63 55 36l14 49"
+                />
+                <path
+                  className="sigil-horn sigil-horn-right"
+                  d="M139 54 184 24l-26 55"
+                />
+                <path
+                  className="sigil-crest"
+                  d="M117 33c2 14 1 29-5 45M135 45c-2 13-7 25-16 36M97 59c-12 4-22 11-31 22"
+                />
+                <path
+                  className="sigil-eye"
+                  d="M103 91c14 7 29 8 44 1"
+                />
+                <path
+                  className="sigil-whisker"
+                  d="M93 118c-21 5-39 17-53 36M124 121c-7 25-24 44-51 57M137 111c24 5 40 17 50 36"
+                />
+                <path
+                  className="sigil-energy"
+                  d="M64 154c30 6 60-1 90-22 21-15 35-34 43-58"
+                />
+              </svg>
               <span className="horn horn-left" />
               <span className="horn horn-right" />
               <span className="dragon-eye eye-left" />
@@ -1872,6 +2119,23 @@ function App() {
               <span className="terminal-line" />
               <span className="terminal-line" />
               <span className="terminal-line" />
+            </div>
+            <div className="hud-reticle">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="hud-neural-links">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="hud-status-runes">
+              <span>{visualLabel}</span>
+              <span>{signal}</span>
+              <span>{awaitingCount ? `${awaitingCount} gates` : "clear"}</span>
             </div>
           </div>
 
@@ -1894,7 +2158,9 @@ function App() {
                 voiceResponse ||
                 voiceCommandTranscript ||
                 voiceWakeTranscript ||
-                "Say Hey JERVIS. Manual command mode remains available."}
+                (systemStatus?.elevenlabs?.configured
+                  ? "ElevenLabs voice ready. Press Test ElevenLabs or Start JERVIS."
+                  : "Say Hey JERVIS. Manual command mode remains available.")}
             </p>
           </div>
 
@@ -1918,6 +2184,16 @@ function App() {
                 <span>End</span>
               </button>
             )}
+            <button
+              className="core-mode-toggle"
+              type="button"
+              onClick={playElevenLabsVoiceTest}
+              disabled={elevenLabsBusy || !systemStatus?.elevenlabs?.configured}
+              title={systemStatus?.elevenlabs?.configured ? "Play ElevenLabs voice test" : "ElevenLabs is not configured"}
+            >
+              <Volume2 size={17} />
+              <span>{elevenLabsBusy ? "Generating" : "Test ElevenLabs"}</span>
+            </button>
             <button className="icon-action" onClick={toggleMic} disabled={!isLive} title={micEnabled ? "Mute microphone" : "Unmute microphone"}>
               {micEnabled ? <Mic size={20} /> : <MicOff size={20} />}
             </button>
@@ -1929,12 +2205,26 @@ function App() {
             >
               <RefreshCcw size={20} />
             </button>
+            <button
+              className={`core-mode-toggle ${coreMode === "lite" ? "is-lite" : "is-3d"}`}
+              type="button"
+              onClick={toggleCoreMode}
+              title={coreMode === "3d" ? "Switch to Lite Core" : "Switch to 3D Core"}
+              aria-pressed={coreMode === "3d"}
+            >
+              <Cpu size={17} />
+              <span>{coreMode === "3d" ? "3D Core" : "Lite Core"}{coreModeAuto ? " Auto" : ""}</span>
+            </button>
           </div>
         </div>
 
         <div className="status-grid">
           <StatusTile icon={<Activity size={18} />} label="Status" value={visualLabel} />
-          <StatusTile icon={<Volume2 size={18} />} label="Voice" value={isVoiceActive || voiceState === "unavailable" ? voiceState : config.voice} />
+          <StatusTile
+            icon={<Volume2 size={18} />}
+            label="Voice"
+            value={isVoiceActive || voiceState === "unavailable" ? voiceState : systemStatus?.elevenlabs?.configured ? "ElevenLabs" : config.voice}
+          />
           <StatusTile icon={<BrainCircuit size={18} />} label="Model" value={config.model} />
           <StatusTile icon={<Unplug size={18} />} label="Signal" value={signal} />
           <StatusTile icon={<TerminalSquare size={18} />} label="Command" value={commandState} />
@@ -1942,6 +2232,7 @@ function App() {
           <StatusTile icon={<CircleAlert size={18} />} label="Alerts" value={String(systemStatus?.alerts?.active ?? 0)} />
           <StatusTile icon={<Sparkles size={18} />} label="Notify" value={notificationPermission} />
           <StatusTile icon={<Mic size={18} />} label="Mic" value={microphonePermission} />
+          <StatusTile icon={<Cpu size={18} />} label="Core" value={`${coreMode === "3d" ? "3D" : "Lite"}${coreModeAuto ? " auto" : ""}`} />
           <StatusTile icon={<Cpu size={18} />} label="Local ctrl" value={systemStatus?.local_control?.status || "checking"} />
           <StatusTile icon={<Volume2 size={18} />} label="ElevenLabs" value={systemStatus?.elevenlabs?.status || "checking"} />
         </div>
@@ -2653,6 +2944,7 @@ function App() {
             <strong>Text-to-speech bridge</strong>
             <p className="empty-state">
               Status: {systemStatus?.elevenlabs?.status || "checking"}. Provider: ElevenLabs. Voice: {systemStatus?.elevenlabs?.voice_id || "default"}.
+              JARVIS replies use ElevenLabs when ready, browser voice as fallback.
             </p>
             <label>
               <span>Preview text</span>
@@ -2866,6 +3158,8 @@ function App() {
           onCancel={() => resolvePendingAction(activePendingAction.id, "cancel")}
         />
       ) : null}
+
+      <JervisBridgePanel />
     </main>
     </>
   );
