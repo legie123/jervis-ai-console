@@ -1,13 +1,23 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-07T12:00:00Z
-next_recommended_agent: claude
+last_session_end: 2026-05-07T14:30:00Z
+next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-07, [cursor]) — Premium program + Faza 2 boot URLs
+
+**DONE:** Plan strategic `cursor Jarvis ai/plans/JARVIS_PREMIUM_PROGRAM.md` (faze 0–6, metrici, riscuri). Implementare **Faza 2 parțială:** `resolveBootFsmUrls()` în `command-center/apps/web/src/components/constants.js`, `boot-poller.js` folosește resolver; `index.html` — comentariu exemplu pentru `globalThis.__JARVIS_BOOT_FSM_URLS__`. `npm --prefix command-center test` → **37/37** pass.
+
+**NEXT:** Hermes promovează planul în `BRAIN/master-plan/` dacă devine canon; închide T-004 în tasks dacă e acord cu handoff-ul existent; continuă P0 din `NEXT_ACTIONS.md`.
+
+Branch local: **`cursor/jarvis-premium-program`**.
+
+---
 
 ## Last session summary (2026-05-07, [cursor]) — T-011 BridgePanel polish
 

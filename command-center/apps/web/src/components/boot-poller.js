@@ -1,10 +1,10 @@
-import { BOOT_FSM_URLS, normalizeFsmPayload } from "./constants.js";
+import { resolveBootFsmUrls, normalizeFsmPayload } from "./constants.js";
 
 /**
  * First successful JSON wins (Promise.any).
  */
 export async function fetchFsmFromBoots(timeoutMs = 1800) {
-  const tasks = BOOT_FSM_URLS.map(({ url, port, label }) =>
+  const tasks = resolveBootFsmUrls().map(({ url, port, label }) =>
     (async () => {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), timeoutMs);

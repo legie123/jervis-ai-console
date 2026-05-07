@@ -272,6 +272,13 @@
       </div>
     </div>
 
+    <!--
+      Optional: override FSM poll targets before modules load (premium portability).
+      globalThis.__JARVIS_BOOT_FSM_URLS__ = [
+        { url: "http://127.0.0.1:7777/fsm", port: 7777, label: "Codex" },
+        { url: "http://127.0.0.1:7778/fsm", port: 7778, label: "Claude V3" }
+      ];
+    -->
     <script type="module" src="/app.js"></script>
   </body>
 </html>

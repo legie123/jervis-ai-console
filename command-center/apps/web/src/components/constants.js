@@ -21,6 +21,29 @@ export const BOOT_FSM_URLS = Object.freeze([
   { url: "http://127.0.0.1:7778/fsm", port: 7778, label: "Claude V3" }
 ]);
 
+/**
+ * Runtime override: set `globalThis.__JARVIS_BOOT_FSM_URLS__` to an array of
+ * `{ url, port?, label? }` before `app.js` loads (see index.html example).
+ */
+function normalizeBootEntry(raw, index) {
+  if (!raw || typeof raw !== "object") return null;
+  const url = typeof raw.url === "string" ? raw.url : null;
+  if (!url) return null;
+  let port = raw.port;
+  if (typeof port === "string") port = parseInt(port, 10);
+  if (!Number.isFinite(port)) port = index === 0 ? 7777 : 7778;
+  const label = typeof raw.label === "string" ? raw.label : `Boot ${index + 1}`;
+  return { url, port, label };
+}
+
+export function resolveBootFsmUrls() {
+  const raw =
+    typeof globalThis !== "undefined" ? globalThis.__JARVIS_BOOT_FSM_URLS__ : undefined;
+  if (!Array.isArray(raw) || raw.length === 0) return BOOT_FSM_URLS;
+  const mapped = raw.map(normalizeBootEntry).filter(Boolean);
+  return mapped.length ? Object.freeze(mapped) : BOOT_FSM_URLS;
+}
+
 export function normalizeFsmPayload(json) {
   if (!json || typeof json !== "object") return null;
   const state =
