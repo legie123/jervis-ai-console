@@ -53,6 +53,20 @@ Hot reload while editing the web app:
 npm run dev:web
 ```
 
+## Adapter feeds — Obsidian, Ruflo, GoodMood (required for full operator picture)
+
+The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/feed`, `/api/ruflo/feed`, `/api/good-mood/feed`, `/api/hermes/feed`). The web UI’s **live unified inbox** and collaboration layer expect these names; wire them on every serious install.
+
+1. **Enable adapters** (pick one style):
+
+   ```bash
+   export JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,good_mood,hermes
+   ```
+
+   or set `JARVIS_ADAPTER_OBSIDIAN_ENABLED=true`, `JARVIS_ADAPTER_RUFLO_ENABLED=true`, `JARVIS_ADAPTER_GOOD_MOOD_ENABLED=true` (and Hermes if you use dispatch handoffs).
+
+2. **Obsidian (writes + sync API)** still needs a vault path and write flag (see [Obsidian Sync](#obsidian-sync) below). Ruflo and GoodMood feeds aggregate **audit log** rows whose `source` / `action` text matches those adapters (for example log lines containing `ruflo`, `swarm`, `good_mood`, `coach`). Emit audit events from your agents with those keywords so the inbox fills.
+
 ## Scheduler
 
 Run due local jobs:
