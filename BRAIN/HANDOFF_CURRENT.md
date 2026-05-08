@@ -9,6 +9,22 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-09, [cursor]) — WhatsApp draft store JSON recovery (test suite green)
+
+**DONE:** `WhatsAppDraftStore.list()` recuperează array-ul din fișier corupt (prefix JSON valid + junk după `]`) prin scanarea închiderii array-ului top-level; rescrie fișierul curat. Export `recoverDraftArrayJson` + `test/draft-store-recovery.test.js`. `npm --prefix command-center test` → **91/91** pass.
+
+**NEXT:** s3-voice wake-word; Figma cu link fișier.
+
+---
+
+## Last session summary (2026-05-09, [cursor]) — Copilot workspace intelligence + shell tests
+
+**DONE:** `resolveCopilotHint` primește `activeSectionId` și în STANDBY idle adaugă linie scurtă per workspace (Mission…Graph). `createShellNavigation` notifică `onActiveSectionChange` → `app.js` actualizează copilotul la fiecare switch rail/paletă. Export `applyWorkspaceVisibility` + teste `shell-navigation.test.js`; test copilot workspace în `copilot-hints.test.js`.
+
+**NEXT:** Figma / voice hands-free (s3-voice) pentru Codex sau backlog dedicat.
+
+---
+
 ## Last session summary (2026-05-09, [cursor]) — Interactive spotlight tour (v2 guide layer)
 
 **DONE:** Tur spotlight vanilla (`interactive-guide.js`): 5 pași (topbar, rail, stage, inspector, copilot), overlay + cutout, Esc/skip/click scrim închide; Done setează `localStorage` `jervis.commandCenter.spotlight.v1.done`. Banner first-run: buton **Spotlight tour**; paletă: **Help · Spotlight workspace tour**. `data-guide` pe landmark-uri în `index.html`. Test `test/interactive-guide.test.js`. Branch: **`cursor/dashboard-workspace-shell`** (continuare).
