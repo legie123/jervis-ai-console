@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>JARVIS Command Center</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div
+      id="errorBoundaryBanner"
+      class="error-boundary-banner"
+      hidden
+      role="alert"
+      aria-live="assertive"
+    >
+      <strong class="error-boundary-msg">Runtime error</strong>
+      <button type="button" class="error-boundary-copy btn-secondary btn-compact">Copy stack</button>
+      <button type="button" class="error-boundary-dismiss btn-secondary btn-compact" aria-label="Dismiss error banner">
+        Dismiss
+      </button>
+      <pre class="error-boundary-details" tabindex="0"></pre>
+    </div>
+
+    <div class="app-shell">
+      <header class="topbar-elite glass-bar" data-guide="topbar">
+        <div class="topbar-left">
+          <div id="mountJervisOrb" class="mount-jervis-orb"></div>
+          <div class="brand-block">
+            <p class="brand-kicker">OPERATOR · LOCAL</p>
+            <h1 class="brand-title">JERVIS</h1>
+            <p id="statusLine" class="status-line">Checking local operator…</p>
+          </div>
+        </div>
+        <div class="topbar-center">
+          <div id="mountFsmPill" class="mount-fsm"></div>
+          <div id="mountVoiceOrb" class="mount-voice-orb-center"></div>
+          <div id="mountRiskIndicator" class="mount-risk"></div>
+        </div>
+        <div class="topbar-right">
+          <time id="mountClock" class="clock-chip" datetime="">—:—</time>
+          <div id="mountBootBadge" class="boot-badge boot-badge-loading" role="status" aria-live="polite">
+            Boot · scanning…
+          </div>
+          <button id="bootRetryBtn" type="button" class="btn-icon" aria-label="Retry boot FSM probe">
+            ↻
+          </button>
+          <button id="healthBtn" type="button" class="btn-icon" aria-label="Refresh health summary">
+            ✓
+          </button>
+        </div>
+      </header>
+
+      <div class="ux-premium-rail">
+        <div id="mountFirstRunBanner" class="first-run-banner-host"></div>
+        <div id="mountContextCopilot" class="context-copilot-host" data-guide="copilot"></div>
+      </div>
+
+      <div class="body-grid">
+        <nav class="nav-rail glass-panel" aria-label="Primary navigation" data-guide="nav-rail">
+          <button type="button" class="nav-btn is-active" data-target="section-mission" aria-current="page">
+            <span class="nav-shortcut" aria-hidden="true">⌘1</span>
+            Mission
+          </button>
+          <button type="button" class="nav-btn" data-target="section-ops">
+            <span class="nav-shortcut" aria-hidden="true">⌘2</span>
+            Ops
+          </button>
+          <button type="button" class="nav-btn" data-target="section-bridge">
+            <span class="nav-shortcut" aria-hidden="true">⌘3</span>
+            Bridge
+          </button>
+          <button type="button" class="nav-btn" data-target="section-system">
+            <span class="nav-shortcut" aria-hidden="true">⌘4</span>
+            System
+          </button>
+          <button type="button" class="nav-btn" data-target="section-graph">
+            <span class="nav-shortcut" aria-hidden="true">⌘5</span>
+            Graph
+          </button>
+        </nav>
+
+        <main id="main-content" class="center-stage" tabindex="-1" aria-labelledby="stageTitle">
+          <header class="stage-header glass" data-guide="stage-header">
+            <p class="stage-kicker">Workspace</p>
+            <h2 id="stageTitle" class="stage-title">Mission</h2>
+            <p id="stageBlurb" class="stage-blurb">
+              Compose missions and read planner output in one focused pane.
+            </p>
+          </header>
+
+          <section id="section-mission" class="view-section">
+            <details class="panel-section glass" open>
+              <summary>Mission planner</summary>
+              <div class="panel-section-body">
+                <form id="missionForm" class="stack-form">
+                  <label for="missionInput">Input</label>
+                  <textarea id="missionInput" rows="5" placeholder="Example: draft whatsapp reply for client"></textarea>
+                  <button type="submit">Plan Mission</button>
+                  <pre id="missionOutput" class="json-pre" tabindex="0"></pre>
+                </form>
+              </div>
+            </details>
+          </section>
+
+          <section id="section-ops" class="view-section" hidden>
+            <details class="panel-section glass" open>
+              <summary>WhatsApp draft</summary>
+              <div class="panel-section-body">
+                <form id="draftForm" class="stack-form">
+                  <label for="draftTo">Recipient</label>
+                  <input id="draftTo" placeholder="40700000000" autocomplete="tel" />
+                  <label for="draftBody">Message</label>
+                  <textarea id="draftBody" rows="5" placeholder="Draft only. No real send."></textarea>
+                  <label for="draftSchedule">Schedule</label>
+                  <input id="draftSchedule" type="datetime-local" />
+                  <button type="submit">Create Draft</button>
+                  <button id="bridgeCreateDraftBtn" type="button">Create In Bridge</button>
+                  <p class="risk">DANGEROUS: external communication. Real send disabled.</p>
+                  <pre id="draftOutput" class="json-pre" tabindex="0"></pre>
+                </form>
+              </div>
+            </details>
+
+            <details class="panel-section glass">
+              <summary>Inbox</summary>
+              <div class="panel-section-body">
+                <div class="row-toolbar">
+                  <button id="refreshInboxBtn" type="button">Refresh</button>
+                </div>
+                <div id="inboxList" class="list" role="list"></div>
+              </div>
+            </details>
+
+            <details class="panel-section glass">
+              <summary>Drafts</summary>
+              <div class="panel-section-body">
+                <div class="row-toolbar">
+                  <button id="refreshDraftsBtn" type="button">Refresh</button>
+                </div>
+                <div id="draftList" class="list" role="list"></div>
+              </div>
+            </details>
+
+            <details class="panel-section glass">
+              <summary>Send gate</summary>
+              <div class="panel-section-body">
+                <form id="sendForm" class="stack-form">
+                  <label for="sendDraftId">Draft ID</label>
+                  <input id="sendDraftId" placeholder="wa_draft_..." autocomplete="off" />
+                  <label for="sendToken">Confirmation Token</label>
+                  <input id="sendToken" placeholder="auto-issued scoped token (or paste manual token)" autocomplete="off" />
+                  <button class="danger" type="submit">Send WhatsApp</button>
+                  <button id="bridgeSendBtn" class="danger" type="button">Send Via Bridge</button>
+                  <p class="risk">REAL send only works when `.env` enables WhatsApp Cloud API.</p>
+                  <pre id="sendOutput" class="json-pre" tabindex="0"></pre>
+                </form>
+              </div>
+            </details>
+          </section>
+
+          <section id="section-bridge" class="view-section" hidden>
+            <details class="panel-section glass" open>
+              <summary>WhatsApp bridge</summary>
+              <div class="panel-section-body">
+                <div class="row-toolbar">
+                  <button id="bridgeStatusBtn" type="button">Check</button>
+                </div>
+                <p id="bridgeStatus">Bridge not checked.</p>
+                <button id="bridgePreflightBtn" type="button">Preflight Send Config</button>
+                <label for="bridgeToken">Bridge Send Token</label>
+                <input id="bridgeToken" placeholder="auto-issued scoped token" autocomplete="off" />
+                <div class="button-row">
+                  <button id="bridgeInboxBtn" type="button">Load Inbox</button>
+                  <button id="bridgeDraftsBtn" type="button">Load Drafts</button>
+                </div>
+                <div class="bridge-columns">
+                  <div>
+                    <h3 class="stack-heading">Bridge Inbox</h3>
+                    <div id="bridgeInboxList" class="list" role="list"></div>
+                  </div>
+                  <div>
+                    <h3 class="stack-heading">Bridge Drafts</h3>
+                    <div id="bridgeDraftList" class="list" role="list"></div>
+                  </div>
+                </div>
+                <pre id="bridgeOutput" class="json-pre" tabindex="0"></pre>
+              </div>
+            </details>
+          </section>
+
+          <section id="section-system" class="view-section" hidden>
+            <details class="panel-section glass" open>
+              <summary>Scheduler</summary>
+              <div class="panel-section-body">
+                <div class="row-toolbar">
+                  <button id="runDueBtn" type="button">Run Due</button>
+                </div>
+                <p id="schedulerStatus">Scheduler loop checking…</p>
+                <div id="jobList" class="list" role="list"></div>
+              </div>
+            </details>
+
+            <details class="panel-section glass">
+              <summary>Backup</summary>
+              <div class="panel-section-body">
+                <label for="backupLabel">Label</label>
+                <input id="backupLabel" placeholder="manual" autocomplete="off" />
+                <button id="backupBtn" type="button">Create Backup</button>
+                <button id="exportStateBtn" type="button">Export State</button>
+                <pre id="backupOutput" class="json-pre" tabindex="0"></pre>
+              </div>
+            </details>
+
+            <details class="panel-section glass">
+              <summary>Obsidian</summary>
+              <div class="panel-section-body">
+                <label for="obsidianToken">Confirmation Token</label>
+                <input id="obsidianToken" placeholder="auto-issued scoped token" autocomplete="off" />
+                <button id="obsidianSyncBtn" type="button">Sync Summary</button>
+                <p class="risk">Writes only when vault path and env gate are enabled.</p>
+                <pre id="obsidianOutput" class="json-pre" tabindex="0"></pre>
+              </div>
+            </details>
+          </section>
+
+          <section id="section-graph" class="view-section" hidden>
+            <details class="panel-section glass" open>
+              <summary>Graphify</summary>
+              <div class="panel-section-body">
+                <button id="graphifyExportBtn" type="button">Export &amp; View Map</button>
+                <p class="risk">Exports local operational map JSON and renders it below.</p>
+                <div class="graph-toolbar">
+                  <label for="graphSearch">Search</label>
+                  <input id="graphSearch" placeholder="node id, label, status, type, risk" autocomplete="off" />
+                  <button id="graphZoomOutBtn" type="button" aria-label="Zoom out">−</button>
+                  <button id="graphZoomInBtn" type="button" aria-label="Zoom in">+</button>
+                  <button id="graphResetBtn" type="button">Reset</button>
+                  <span id="graphMatchCount">0 matches</span>
+                </div>
+                <div id="graphCounts" class="graph-counts"></div>
+                <div id="graphFilters" class="graph-filters"></div>
+                <div class="graph-layout">
+                  <div class="graph-viewport">
+                    <svg id="graphSvg" viewBox="0 0 1000 660" role="img" aria-label="Graphify operational map"></svg>
+                  </div>
+                  <pre id="graphNodeDetails" tabindex="0">Select a graph node.</pre>
+                </div>
+                <pre id="graphifyOutput" class="json-pre" tabindex="0"></pre>
+              </div>
+            </details>
+          </section>
+        </main>
+
+        <aside class="inspector glass-panel" aria-label="Inspector" data-guide="inspector">
+          <div id="mountLiveUnifiedInbox"></div>
+          <div id="mountStatusTiles" class="status-tiles"></div>
+          <div id="mountAuditFeed"></div>
+          <div id="mountApprovalQueue"></div>
+          <details class="panel-section glass captain-log-panel" open>
+            <summary>Captain’s Log</summary>
+            <div class="panel-section-body" id="mountCaptainsLog"></div>
+          </details>
+        </aside>
+      </div>
+
+      <footer class="app-footer glass-bar">
+        <span class="footer-hint"><kbd>⌘</kbd><kbd>K</kbd> Palette · <kbd>⌘</kbd><kbd>,</kbd> Settings · <kbd>⌘</kbd><kbd>.</kbd> Emergency stop · <kbd>?</kbd> Shortcuts · Esc closes dialogs</span>
+      </footer>
+    </div>
+
+    <div id="mountCommandPalette"></div>
+    <div id="mountPendingModal"></div>
+    <div id="mountOperatorSettings"></div>
+    <div id="mountToasts"></div>
+
+    <div id="shortcutsOverlay" class="shortcuts-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+      <div class="shortcuts-card glass-modal">
+        <h2 id="shortcutsTitle">Keyboard shortcuts</h2>
+        <ul class="shortcuts-list">
+          <li><kbd>⌘</kbd><kbd>K</kbd> Command palette</li>
+          <li>Palette → Help · Spotlight workspace tour</li>
+          <li><kbd>⌘</kbd><kbd>Enter</kbd> Confirm / advance pending gate</li>
+          <li><kbd>Esc</kbd> Abort dialog</li>
+          <li><kbd>⌘</kbd><kbd>1…5</kbd> Switch workspace (Mission…Graph)</li>
+          <li><kbd>⌘</kbd><kbd>,</kbd> Operator settings</li>
+          <li><kbd>⌘</kbd><kbd>.</kbd> Emergency stop</li>
+          <li><kbd>?</kbd> Toggle this panel</li>
+        </ul>
+        <button type="button" class="btn-secondary" id="shortcutsCloseBtn">Close</button>
+      </div>
+    </div>
+
+    <!--
+      Optional: override FSM poll targets before modules load (premium portability).
+      globalThis.__JARVIS_BOOT_FSM_URLS__ = [
+        { url: "http://127.0.0.1:7777/fsm", port: 7777, label: "Codex" },
+        { url: "http://127.0.0.1:7778/fsm", port: 7778, label: "Claude V3" }
+      ];
+    -->
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

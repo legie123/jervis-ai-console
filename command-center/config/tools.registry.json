@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "id": "whatsapp.draft",
+      "label": "WhatsApp Draft",
+      "status": "PARTIAL",
+      "risk": "DANGEROUS",
+      "requiresConfirmation": true,
+      "realSendEnabled": "env_gated"
+    },
+    {
+      "id": "obsidian.sync",
+      "label": "Obsidian Sync",
+      "status": "MOCK",
+      "risk": "PARTIAL",
+      "requiresConfirmation": true
+    },
+    {
+      "id": "graphify.export",
+      "label": "Graphify Export",
+      "status": "MOCK",
+      "risk": "PARTIAL",
+      "requiresConfirmation": true
+    }
+  ]
+}

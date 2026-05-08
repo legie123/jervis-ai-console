@@ -1,22 +1,22 @@
 {
-  "name": "jarvis-realtime-console",
+  "name": "jarvis-whatsapp-bridge",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development node server/index.js",
-    "build": "vite build",
-    "preview": "NODE_ENV=production node server/index.js"
+    "start": "node src/index.js",
+    "start:command-center": "npm --prefix command-center run start:web",
+    "test:command-center": "npm --prefix command-center test",
+    "healthcheck:command-center": "npm --prefix command-center run healthcheck",
+    "voice:clone": "node scripts/clone-elevenlabs-voice.js",
+    "test": "node --test tests/",
+    "build": "node --check src/index.js && node --check scripts/clone-elevenlabs-voice.js"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "express-rate-limit": "^8.4.1",
-    "helmet": "^8.1.0",
-    "lucide-react": "^0.561.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "vite": "^7.3.0"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
   }
 }
