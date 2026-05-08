@@ -1,18 +1,72 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
+
+function findTopLevelJsonArrayEnd(text, fromIndex) {
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = fromIndex; i < text.length; i++) {
+    const c = text[i];
+    if (inString) {
+      if (escape) escape = false;
+      else if (c === "\\") escape = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+    if (c === '"') {
+      inString = true;
+      continue;
+    }
+    if (c === "[") depth += 1;
+    if (c === "]") {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+export function recoverDraftArrayJson(raw) {
+  const t = String(raw ?? "").trim();
+  if (!t) return { drafts: [], recovered: false };
+  try {
+    const parsed = JSON.parse(t);
+    if (!Array.isArray(parsed)) return { drafts: [], recovered: false };
+    return { drafts: parsed, recovered: false };
+  } catch {
+    const start = t.indexOf("[");
+    if (start === -1) return { drafts: [], recovered: true };
+    const end = findTopLevelJsonArrayEnd(t, start);
+    if (end === -1) return { drafts: [], recovered: true };
+    const slice = t.slice(start, end + 1);
+    try {
+      const parsed = JSON.parse(slice);
+      if (Array.isArray(parsed)) return { drafts: parsed, recovered: true };
+    } catch {
+      /* fall through */
+    }
+    return { drafts: [], recovered: true };
+  }
+}
 
 export class WhatsAppDraftStore {
-  constructor(filePath = "./data/drafts/whatsapp-drafts.json") {
+  constructor(filePath = process.env.JARVIS_DRAFT_STORE || dataPath("drafts/whatsapp-drafts.json")) {
     this.filePath = filePath;
   }
 
   async list() {
+    let raw;
     try {
-      return JSON.parse(await fs.readFile(this.filePath, "utf8"));
+      raw = await fs.readFile(this.filePath, "utf8");
     } catch (error) {
       if (error.code === "ENOENT") return [];
       throw error;
     }
+
+    const { drafts, recovered } = recoverDraftArrayJson(raw);
+    if (recovered) await this.#write(drafts);
+    return drafts;
   }
 
   async create({ to, body, reason = "", scheduledFor = null }) {

@@ -9,7 +9,7 @@
     "test:command-center": "npm --prefix command-center test",
     "healthcheck:command-center": "npm --prefix command-center run healthcheck",
     "voice:clone": "node scripts/clone-elevenlabs-voice.js",
-    "test": "node --test test/*.test.js",
+    "test": "node --test tests/",
     "build": "node --check src/index.js && node --check scripts/clone-elevenlabs-voice.js"
   },
   "dependencies": {
