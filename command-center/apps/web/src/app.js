@@ -25,6 +25,7 @@ import { mountCaptainsLog } from "./components/captains-log.js";
 import { createAuditFeed } from "./components/audit-feed.js";
 import { mountPendingActionModal } from "./components/pending-action-modal.js";
 import { mountCommandPalette } from "./components/command-palette.js";
+import { mountOperatorSettings } from "./components/operator-settings.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -140,6 +141,12 @@ const pendingGate = mountPendingActionModal(document.querySelector("#mountPendin
     if (ev?.action === "confirmed") {
       toastRegion.push("Risk gate cleared (demo acknowledge)", "info");
     }
+  }
+});
+
+const operatorSettings = mountOperatorSettings(document.querySelector("#mountOperatorSettings"), {
+  onSaved: () => {
+    toastRegion.push("Operator settings saved · boot URLs updated", "info");
   }
 });
 
@@ -674,6 +681,21 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       group: "WhatsApp",
       keywords: "messages",
       run: () => loadInbox().then(() => toastRegion.push("Inbox refreshed", "info"))
+    },
+    {
+      title: "Open · Operator settings",
+      group: "System",
+      keywords: "boot fsm urls config localStorage settings preferences",
+      run: () => operatorSettings.open()
+    },
+    {
+      title: "Export · Audit JSON",
+      group: "System",
+      keywords: "audit export download json",
+      run: () => {
+        auditCtl.exportEntries();
+        toastRegion.push("Audit JSON downloaded", "info");
+      }
     }
   ],
   onClose: () => {}
@@ -688,6 +710,10 @@ document.addEventListener("keydown", (e) => {
   if (meta && e.key.toLowerCase() === "k") {
     e.preventDefault();
     paletteCtl.open();
+  }
+  if (meta && e.key === ",") {
+    e.preventDefault();
+    operatorSettings.open();
   }
   if (meta && e.key >= "1" && e.key <= "5") {
     e.preventDefault();

@@ -1,20 +1,56 @@
 import { riskToLedIndex } from "./constants.js";
 
+export function buildAuditExportBlob(entries, isoNow = new Date().toISOString()) {
+  const payload = {
+    exportedAt: isoNow,
+    count: Array.isArray(entries) ? entries.length : 0,
+    entries: Array.isArray(entries) ? entries : []
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
 export function createAuditFeed(root, { fetchAudit }) {
   let backoffMs = 2600;
   let timer = null;
   let stopped = false;
+  let lastEntries = [];
 
   root.innerHTML = `
     <section class="audit-feed panel-section-elite" aria-labelledby="audit-feed-heading">
       <div class="audit-feed-head">
         <h3 id="audit-feed-heading">Audit stream</h3>
-        <span class="audit-feed-live" aria-live="polite"><span class="live-dot" aria-hidden="true"></span> Live</span>
+        <div class="audit-feed-tools">
+          <button type="button" class="btn-secondary btn-compact audit-feed-export" aria-label="Export audit entries as JSON">Export JSON</button>
+          <span class="audit-feed-live" aria-live="polite"><span class="live-dot" aria-hidden="true"></span> Live</span>
+        </div>
       </div>
       <div class="audit-feed-list" role="list"></div>
     </section>
   `;
   const listEl = root.querySelector(".audit-feed-list");
+  const exportBtn = root.querySelector(".audit-feed-export");
+
+  function exportEntries() {
+    const json = buildAuditExportBlob(lastEntries);
+    if (typeof document === "undefined") return json;
+    try {
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      a.href = url;
+      a.download = `jervis-audit-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 250);
+    } catch {
+      /* swallow — best-effort download */
+    }
+    return json;
+  }
+
+  exportBtn?.addEventListener("click", exportEntries);
 
   function render(entries) {
     listEl.replaceChildren();
@@ -38,7 +74,8 @@ export function createAuditFeed(root, { fetchAudit }) {
   async function tick() {
     try {
       const entries = await fetchAudit();
-      render(entries);
+      lastEntries = Array.isArray(entries) ? entries : [];
+      render(lastEntries);
       backoffMs = 2600;
       return entries;
     } catch {
@@ -68,6 +105,7 @@ export function createAuditFeed(root, { fetchAudit }) {
       clearTimeout(timer);
     },
     refresh: tick,
+    exportEntries,
     lastRiskFrom(entries) {
       const first = entries?.[0];
       return riskToLedIndex(first?.risk);
