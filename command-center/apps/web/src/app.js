@@ -26,6 +26,7 @@ import { createAuditFeed } from "./components/audit-feed.js";
 import { mountPendingActionModal } from "./components/pending-action-modal.js";
 import { mountCommandPalette } from "./components/command-palette.js";
 import { mountOperatorSettings } from "./components/operator-settings.js";
+import { mountApprovalQueue } from "./components/approval-queue.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -176,6 +177,19 @@ const tileSchedCtl = mountStatusTile(tSched, {
 });
 
 mountCaptainsLog(document.querySelector("#mountCaptainsLog"));
+
+mountApprovalQueue(document.querySelector("#mountApprovalQueue"), {
+  pendingGate,
+  toastRegion,
+  onAction: (ev) => {
+    if (ev.type === "approved") {
+      toastRegion.push(`Approved: ${ev.action.title}`, "info");
+    }
+    if (ev.type === "always") {
+      // could persist preference in future
+    }
+  }
+});
 
 const auditCtl = createAuditFeed(document.querySelector("#mountAuditFeed"), {
   fetchAudit: async () => {
@@ -695,6 +709,16 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       run: () => {
         auditCtl.exportEntries();
         toastRegion.push("Audit JSON downloaded", "info");
+      }
+    },
+    {
+      title: "Focus · Approval queue",
+      group: "Actions",
+      keywords: "approve queue pending actions jarvis autonomous",
+      run: () => {
+        const q = document.querySelector("#mountApprovalQueue");
+        q?.scrollIntoView({ behavior: "smooth", block: "center" });
+        toastRegion.push("Approval queue focused", "info");
       }
     }
   ],

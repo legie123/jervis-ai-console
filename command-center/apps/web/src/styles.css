@@ -1138,3 +1138,90 @@ kbd {
     grid-column: 1 / -1;
   }
 }
+
+/* Approval Queue premium */
+.approval-queue .aq-count {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(75, 224, 255, 0.15);
+  color: var(--accent-cyan);
+  margin-left: 8px;
+}
+
+.aq-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.aq-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.aq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.aq-item {
+  border-radius: 12px;
+  border: 1px solid rgba(126, 138, 160, 0.25);
+  background: rgba(3, 8, 18, 0.55);
+  padding: 12px 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aq-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.aq-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.aq-risk {
+  flex-shrink: 0;
+}
+
+.aq-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aq-source {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.aq-details {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.aq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.aq-actions button {
+  font-size: 12px;
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.aq-actions .aq-approve {
+  background: rgba(90, 210, 138, 0.15);
+  border-color: rgba(90, 210, 138, 0.4);
+}
