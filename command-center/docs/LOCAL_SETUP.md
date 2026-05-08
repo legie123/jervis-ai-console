@@ -22,9 +22,35 @@ Then open:
 
 ## Test
 
+From repo root, if scripts expect that layout:
+
 ```bash
 ./scripts/healthcheck.sh
 npm test
+```
+
+From `command-center/` (Node test runner + operator healthcheck script live here):
+
+```bash
+npm test
+node apps/operator/src/healthcheck.js
+```
+
+## Production-style web UI (Vite)
+
+From `command-center/`:
+
+```bash
+npm run build
+npm run start:web
+```
+
+Open `http://127.0.0.1:4317` (or `PORT` if set). When `apps/web/dist/index.html` exists, the operator serves the bundled UI; otherwise it serves `apps/web/src/` for quick iteration without a build step.
+
+Hot reload while editing the web app:
+
+```bash
+npm run dev:web
 ```
 
 ## Scheduler

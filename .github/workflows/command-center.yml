@@ -1,0 +1,30 @@
+name: Command Center
+
+on:
+  push:
+    paths:
+      - "command-center/**"
+      - ".github/workflows/command-center.yml"
+  pull_request:
+    paths:
+      - "command-center/**"
+      - ".github/workflows/command-center.yml"
+
+defaults:
+  run:
+    working-directory: command-center
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install
+      - name: Production web build
+        run: npm run build
+      - name: Test
+        run: npm test
