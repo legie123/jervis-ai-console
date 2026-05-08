@@ -1,7 +1,7 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T18:00:00Z
+last_session_end: 2026-05-09T19:00:00Z
 next_recommended_agent: hermes
 ---
 
@@ -9,11 +9,17 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-09, [cursor]) — PR #4 titlu + handoff merge
+
+**DONE:** Titlu PR **#4** actualizat pe GitHub (scope: Vite, operator modular, CI, 91 teste). `HANDOFF_CURRENT`: clar **OPEN / MERGEABLE / CI pass**, merge manual după review.
+
+---
+
 ## Last session summary (2026-05-09, [cursor]) — CI green: sync command-center + npm ci
 
 **DONE:** PR #4 eșua la `npm run build` (branch-ul remote nu avea script `build`/Vite). **Commit mare:** tot `command-center/` aliniat cu workspace (operator modular, Vite, `package-lock.json`, teste 91). Workflow: **`npm ci`** + build + test. **`http.test.js` backup:** creează `data/live/drafts` înainte de backup și asertează orice path care conține `drafts` (profil `live` în `data-paths.js`). Verificat: clone proaspăt + `npm ci` + build + test → **91/91**.
 
-**NEXT:** Re-review PR #4 (diff mare); merge când Andrei/Claude ok. Figma + s3-voice.
+**NEXT:** **PR #4** rămâne **OPEN**, `mergeable: MERGEABLE`, CI **pass** — merge pe `main` când Andrei/Claude review ok (nu auto-merge din agent). După merge: șterge branch remote dacă nu e deja șters. Figma + s3-voice backlog.
 
 ---
 
