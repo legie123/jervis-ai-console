@@ -33,6 +33,7 @@ import { spawn } from 'node:child_process';
 import { scan as aidefenceScan, hasPii } from './jervis-aidefence.mjs';
 import { dockerAvailable, runInDocker }  from './jervis-holodeck-docker.mjs';
 import { startIntentLoop }                from './jervis-whatsapp-intent.mjs';
+import { startBrainSync }                 from './jervis-brain-sync.mjs';
 
 // ============= CONFIG =============
 const VAULT_ROOT  = process.env.JERVIS_VAULT || '/Users/user/Desktop/BUSSINES/Antigraity/TRADE AI';
@@ -505,6 +506,12 @@ async function boot() {
       state.waIntents = state.waIntents.slice(0, 50);
       await writeHandoff(payload);
     },
+  });
+
+  // 7b. Brain sync (canonical → mirror, in-process, no TCC issues)
+  startBrainSync({
+    onLog: (lvl, msg) => log(lvl, 'BrainSync', msg),
+    intervalMs: 15 * 60_000,
   });
 
   // 8. HTTP server

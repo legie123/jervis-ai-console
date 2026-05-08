@@ -1,0 +1,20 @@
+[00:09:05] MOD WarpCore session jervis_1778112545292_t7l1wc
+[00:09:05] MOD WarpCore node v20.18.3 on darwin arm64
+[00:09:05] MOD WarpCore stardate 79127.3
+[00:09:05] OK WarpCore state dir ready: /Users/user/Desktop/BUSSINES/Antigraity/Jarvis AI/state
+[00:09:05] MOD WarpCore swarm config: topology=mesh max=5
+[00:09:05] OK WarpCore agent registered: claude-coder (claude-opus-4-7) → WarpCore
+[00:09:05] OK WarpCore agent registered: codex-reviewer (gpt-5-codex) → Holodeck
+[00:09:05] OK Database vault accessible: /Users/user/Desktop/BUSSINES/Antigraity/TRADE AI
+[00:09:05] OK WarpCore agent registered: sensor-poll (haiku-4-5) → Sensors
+[00:09:05] OK WarpCore agent registered: gemini-researcher (gemini-3-pro) → Sensors
+[00:09:05] OK WarpCore agent registered: memory-keeper (haiku-4-5) → Database
+[00:09:05] MOD Shields aidefence module loaded (17 injection + 11 PII + entropy detection)
+[00:09:05] WARN Holodeck docker NOT available — subprocess fallback only
+[00:09:05] MOD Sensors pollers started (WA http://localhost:8787 60s, Vault 90s)
+[00:09:05] WARN WAIntent ANTHROPIC_API_KEY missing — intent extraction disabled
+[00:09:05] MOD WarpCore HTTP status server :7777
+[00:09:05] OK Sensors vault scan — 51 root entries
+[00:09:05] OK Database captain's log written → 2026-05-07.md
+[00:09:05] OK Sensors WA bridge healthy · queued=0
+[00:09:19] WARN Emergency stop all requested by codex · smoke

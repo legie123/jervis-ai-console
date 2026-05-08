@@ -74,6 +74,12 @@ Așezăm protocolul Claude+Hermes+Codex+Cursor în lucru. La final de săptămâ
 - [ ] localhost:5173 smoke ok
 - [ ] commit-uri prefixate corect
 
+## Cycle-1d update (Hermes orchestration)
+- T-2026-05-07-002 este marcat `superseded`.
+- T-2026-05-07-004 (Elite Premium UI v0) este taskul CRITICAL pentru Cursor.
+- T-2026-05-07-001 + T-2026-05-07-003 rămân paralele pe Codex.
+- Next-cycle queue pregătită: T-005, T-006, T-007, T-008.
+
 ## Open questions for operator
 1. Cursor are deja access la repo prin Cowork sau prin terminal direct?
 2. Hermes rulează ca task autonom în Claude (acest agent) sau separat?

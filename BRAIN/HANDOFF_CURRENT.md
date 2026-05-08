@@ -66,6 +66,19 @@ Branch local: **`cursor/jarvis-premium-program`**.
 
 (Newest entries on top, push old entries down. Append-only.)
 
+## 2026-05-08 17:40 [cursor]
+
+DONE:
+- Implemented Approval Queue premium component (single-file)
+- 4 demo autonomous actions with risk LEDs + Approve/Edit/Skip/Always
+- Integrated in inspector + palette focus command
+- 54/54 tests green, pushed on cursor/jarvis-premium-program
+
+NEXT:
+- Hermes to promote to master-plan as Faza 5 piece
+- Antigravity visual QA on the queue
+- Real API wiring (Codex)
+
 ## 2026-05-07 04:15 [codex]
 
 DONE:

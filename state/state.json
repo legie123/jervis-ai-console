@@ -1,8 +1,8 @@
 {
-  "sessionId": "jervis_1778037650691_3svfp0",
-  "startedAt": "2026-05-06T03:20:50.691Z",
-  "stardate": "79126.6",
-  "alert": "GREEN",
+  "sessionId": "jervis_1778112545292_t7l1wc",
+  "startedAt": "2026-05-07T00:09:05.292Z",
+  "stardate": "79127.3",
+  "alert": "OFFLINE",
   "swarm": {
     "topology": "mesh",
     "maxAgents": 5,
@@ -54,7 +54,7 @@
     },
     "MOD-04.Holodeck": {
       "status": "STANDBY",
-      "note": "on-demand sandbox"
+      "note": "subprocess only (start Docker for VM isolation)"
     },
     "MOD-05.Shields": {
       "status": "ONLINE",
@@ -77,304 +77,156 @@
   },
   "recentEvents": [
     {
-      "ts": "11:02:50",
+      "ts": "00:09:19",
+      "level": "warn",
+      "mod": "Emergency",
+      "msg": "stop all requested by codex · smoke"
+    },
+    {
+      "ts": "00:09:05",
       "level": "ok",
       "mod": "Sensors",
       "msg": "WA bridge healthy · queued=0"
     },
     {
-      "ts": "11:02:50",
+      "ts": "00:09:05",
+      "level": "ok",
+      "mod": "Database",
+      "msg": "captain's log written → 2026-05-07.md"
+    },
+    {
+      "ts": "00:09:05",
       "level": "ok",
       "mod": "Sensors",
       "msg": "vault scan — 51 root entries"
     },
     {
-      "ts": "11:01:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "WarpCore",
+      "msg": "HTTP status server :7777"
     },
     {
-      "ts": "11:01:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "ts": "00:09:05",
+      "level": "warn",
+      "mod": "WAIntent",
+      "msg": "ANTHROPIC_API_KEY missing — intent extraction disabled"
     },
     {
-      "ts": "11:00:50",
-      "level": "ok",
+      "ts": "00:09:05",
+      "level": "mod",
       "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "msg": "pollers started (WA http://localhost:8787 60s, Vault 90s)"
     },
     {
-      "ts": "10:59:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "ts": "00:09:05",
+      "level": "warn",
+      "mod": "Holodeck",
+      "msg": "docker NOT available — subprocess fallback only"
     },
     {
-      "ts": "10:59:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "Shields",
+      "msg": "aidefence module loaded (17 injection + 11 PII + entropy detection)"
     },
     {
-      "ts": "10:58:50",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "mod": "WarpCore",
+      "msg": "agent registered: memory-keeper (haiku-4-5) → Database"
     },
     {
-      "ts": "10:58:20",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "mod": "WarpCore",
+      "msg": "agent registered: sensor-poll (haiku-4-5) → Sensors"
     },
     {
-      "ts": "10:57:50",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "mod": "WarpCore",
+      "msg": "agent registered: gemini-researcher (gemini-3-pro) → Sensors"
     },
     {
-      "ts": "10:56:50",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "mod": "WarpCore",
+      "msg": "agent registered: codex-reviewer (gpt-5-codex) → Holodeck"
     },
     {
-      "ts": "10:56:50",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "mod": "WarpCore",
+      "msg": "agent registered: claude-coder (claude-opus-4-7) → WarpCore"
     },
     {
-      "ts": "10:55:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "WarpCore",
+      "msg": "swarm config: topology=mesh max=5"
     },
     {
-      "ts": "10:55:20",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "mod": "Database",
+      "msg": "vault accessible: /Users/user/Desktop/BUSSINES/Antigraity/TRADE AI"
     },
     {
-      "ts": "10:54:50",
+      "ts": "00:09:05",
       "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "mod": "WarpCore",
+      "msg": "state dir ready: /Users/user/Desktop/BUSSINES/Antigraity/Jarvis AI/state"
     },
     {
-      "ts": "10:53:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "WarpCore",
+      "msg": "node v20.18.3 on darwin arm64"
     },
     {
-      "ts": "10:53:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "WarpCore",
+      "msg": "stardate 79127.3"
     },
     {
-      "ts": "10:52:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:52:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:51:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:50:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:50:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:49:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:49:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:48:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:47:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:47:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:46:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:46:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:45:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:44:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:44:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:43:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:43:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:42:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:41:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:41:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:40:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:40:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:39:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:38:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:38:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:37:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:37:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:36:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:35:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:35:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:34:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "10:34:20",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 51 root entries"
-    },
-    {
-      "ts": "10:33:50",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
+      "ts": "00:09:05",
+      "level": "mod",
+      "mod": "WarpCore",
+      "msg": "session jervis_1778112545292_t7l1wc"
     }
-  ]
+  ],
+  "fsm": {
+    "state": "STANDBY",
+    "lastTransition": {
+      "from": null,
+      "to": "STANDBY",
+      "at": 1778112559723,
+      "reason": "reset",
+      "event": "reset"
+    },
+    "historyLength": 6
+  },
+  "audit": {
+    "lastEvent": {
+      "ts": "2026-05-07T00:09:19.723Z",
+      "sessionId": "jervis_1778112545292_t7l1wc",
+      "agentId": "codex-reviewer",
+      "eventType": "emergency",
+      "intent": "",
+      "action": "emergency_stop",
+      "riskLevel": "CRITICAL",
+      "payloadHash": "33cc936e4e3c0328",
+      "result": "ok",
+      "durationMs": 0,
+      "source": "jervis-boot-v2",
+      "meta": {
+        "ranHooks": [],
+        "errors": []
+      }
+    }
+  },
+  "dockerEngine": false,
+  "waIntents": []
 }
