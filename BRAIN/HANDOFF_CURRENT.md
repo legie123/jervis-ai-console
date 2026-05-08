@@ -1,7 +1,7 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T17:15:00Z
+last_session_end: 2026-05-09T18:00:00Z
 next_recommended_agent: hermes
 ---
 
@@ -9,11 +9,19 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-09, [cursor]) — CI green: sync command-center + npm ci
+
+**DONE:** PR #4 eșua la `npm run build` (branch-ul remote nu avea script `build`/Vite). **Commit mare:** tot `command-center/` aliniat cu workspace (operator modular, Vite, `package-lock.json`, teste 91). Workflow: **`npm ci`** + build + test. **`http.test.js` backup:** creează `data/live/drafts` înainte de backup și asertează orice path care conține `drafts` (profil `live` în `data-paths.js`). Verificat: clone proaspăt + `npm ci` + build + test → **91/91**.
+
+**NEXT:** Re-review PR #4 (diff mare); merge când Andrei/Claude ok. Figma + s3-voice.
+
+---
+
 ## Last session summary (2026-05-09, [cursor]) — CI workflow + LOCAL_SETUP prod UI
 
-**DONE:** `.github/workflows/command-center.yml`: pe push/PR când se schimbă `command-center/**`, rulează `npm install`, `npm run build`, `npm test` în `command-center/` (Node 22). `docs/LOCAL_SETUP.md`: secțiuni **Production-style web UI (Vite)** + clarificare teste din folderul `command-center/`. Push pe **`cursor/dashboard-workspace-shell`** (PR #4 se actualizează).
+**DONE:** `.github/workflows/command-center.yml`: pe push/PR când se schimbă `command-center/**`, rulează install + `npm run build` + `npm test` în `command-center/` (Node 22). `docs/LOCAL_SETUP.md`: secțiuni **Production-style web UI (Vite)** + clarificare teste din folderul `command-center/`.
 
-**NEXT:** După merge PR #4, verifică tab-ul Checks pe GitHub; opțional `npm ci` + commit `package-lock.json` pentru cache reproducibil. Figma + s3-voice neschimbate.
+**NEXT:** (Înlocuit de sesiunea „CI green” de mai sus.)
 
 ---
 
