@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T20:10:00Z
+last_session_end: 2026-05-09T21:00:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Adapters Obsidian / Ruflo / GoodMood (contract operator)
+
+**DONE:** Clarificat în **`command-center/config/.env.example`** și **`docs/LOCAL_SETUP.md`**: feed-urile sunt **opt-in** prin `JARVIS_ADAPTERS_ENABLED` (ex. `obsidian,ruflo,good_mood,hermes`); Ruflo/GoodMood mapă pe **audit log** (`adapterMatchers` în `http.js`); Obsidian = bridge real (`ObsidianBridge`, vault + token). Push **`main`** `ea23e65`.
+
+**NEXT:** În producție setează env + `OBSIDIAN_*`; agenții Ruflo/GoodMood să scrie în audit cu keyword-uri potrivite ca inbox-ul să se umple.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — PR #4 MERGED pe main + sync local
 
