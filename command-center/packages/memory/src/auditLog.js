@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class AuditLog {
-  constructor(filePath = "./data/logs/audit.jsonl") {
+  constructor(filePath = process.env.JARVIS_AUDIT_LOG || dataPath("logs/audit.jsonl")) {
     this.filePath = filePath;
   }
 

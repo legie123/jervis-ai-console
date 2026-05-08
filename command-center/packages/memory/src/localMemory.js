@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class LocalMemory {
-  constructor(filePath = "./data/memory/local-memory.json") {
+  constructor(filePath = process.env.JARVIS_MEMORY_STORE || dataPath("memory/local-memory.json")) {
     this.filePath = filePath;
   }
 

@@ -7,19 +7,21 @@ export function verifyWebhookChallenge(query, verifyToken) {
 }
 
 export function verifyWebhookSignature({ rawBody, signatureHeader, appSecret }) {
-  if (!appSecret) return { ok: true, skipped: true };
-  if (!signatureHeader?.startsWith("sha256=")) return { ok: false, skipped: false };
+  if (!appSecret) return { ok: false, skipped: false, reason: "missing_app_secret" };
+  if (!signatureHeader?.startsWith("sha256=")) return { ok: false, skipped: false, reason: "missing_signature" };
 
   const expected = crypto.createHmac("sha256", appSecret).update(rawBody).digest("hex");
   const received = signatureHeader.slice("sha256=".length);
   const expectedBuffer = Buffer.from(expected, "hex");
   const receivedBuffer = Buffer.from(received, "hex");
 
+  const ok =
+    expectedBuffer.length === receivedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
   return {
-    ok:
-      expectedBuffer.length === receivedBuffer.length &&
-      crypto.timingSafeEqual(expectedBuffer, receivedBuffer),
-    skipped: false
+    ok,
+    skipped: false,
+    reason: ok ? null : "signature_mismatch"
   };
 }
 

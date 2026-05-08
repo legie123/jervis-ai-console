@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class Scheduler {
-  constructor({ auditLog = null, filePath = "./data/drafts/scheduled-jobs.json" } = {}) {
+  constructor({ auditLog = null, filePath = process.env.JARVIS_SCHEDULER_STORE || dataPath("drafts/scheduled-jobs.json") } = {}) {
     this.auditLog = auditLog;
     this.filePath = filePath;
   }

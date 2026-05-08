@@ -1,8 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class GraphifyBridge {
-  constructor({ exportPath = "./data/exports/graphify-map.json", auditLog = null, writeEnabled = true } = {}) {
+  constructor({
+    exportPath = process.env.GRAPHIFY_EXPORT_PATH || dataPath("exports/graphify-map.json"),
+    auditLog = null,
+    writeEnabled = true
+  } = {}) {
     this.exportPath = exportPath;
     this.auditLog = auditLog;
     this.writeEnabled = writeEnabled;

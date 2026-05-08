@@ -5,6 +5,8 @@ import { SafeWhatsApp } from "../../../packages/whatsapp/src/index.js";
 import { Scheduler } from "../../../packages/scheduler/src/index.js";
 import { ObsidianBridge } from "../../../packages/obsidian/src/index.js";
 import { GraphifyBridge } from "../../../packages/graphify/src/index.js";
+import { buildToolCatalog } from "./runtime-catalog.js";
+import { buildIntentToolCalls, mergePlanWithIntentRouting, routeMissionIntent } from "./intent-router.js";
 
 export function createOperator() {
   loadDotEnv();
@@ -82,6 +84,7 @@ export async function runDueScheduler(now = new Date()) {
 
 export async function exportGraphifyMap() {
   const operator = createOperator();
+  const tools = buildToolCatalog(operator);
   const [missions, drafts, inbox, jobs, audit] = await Promise.all([
     operator.missions.list(),
     operator.whatsapp.draftStore.list(),
@@ -92,7 +95,7 @@ export async function exportGraphifyMap() {
 
   return operator.graphify.exportOperationalMap({
     missions,
-    tools: operator.tools,
+    tools,
     drafts,
     inbox,
     jobs,
@@ -103,7 +106,19 @@ export async function exportGraphifyMap() {
 export async function runMission(input) {
   const operator = createOperator();
   const mission = createMission({ input });
-  const plan = planMission(mission, operator.tools);
+  const fallbackPlan = planMission(mission, operator.tools);
+  const route = routeMissionIntent(mission.input);
+  const toolCalls = buildIntentToolCalls({
+    missionInput: mission.input,
+    requestedTools: route.requestedTools,
+    tools: operator.tools
+  });
+  const plan = mergePlanWithIntentRouting({
+    mission,
+    fallbackPlan,
+    route,
+    toolCalls
+  });
   await operator.missions.save({ ...mission, plan, steps: plan.steps });
 
   await operator.auditLog.write({

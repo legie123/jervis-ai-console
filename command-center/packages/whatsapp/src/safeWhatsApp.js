@@ -19,11 +19,14 @@ export class SafeWhatsApp {
   }
 
   status() {
+    const webhookVerifyConfigured = Boolean(process.env.WHATSAPP_VERIFY_TOKEN);
+    const webhookSignatureConfigured = Boolean(process.env.WHATSAPP_APP_SECRET);
+    const inboundWebhook = webhookVerifyConfigured && webhookSignatureConfigured ? "REAL" : "BROKEN";
     return {
       ...this.sender.status(),
-      inboundWebhook: "PARTIAL",
-      webhookVerifyConfigured: Boolean(process.env.WHATSAPP_VERIFY_TOKEN),
-      webhookSignatureConfigured: Boolean(process.env.WHATSAPP_APP_SECRET)
+      inboundWebhook,
+      webhookVerifyConfigured,
+      webhookSignatureConfigured
     };
   }
 

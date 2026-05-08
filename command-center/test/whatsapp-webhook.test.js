@@ -61,6 +61,17 @@ test("verifies webhook signature when app secret exists", () => {
   );
 });
 
+test("webhook signature verification fails when app secret missing", () => {
+  const rawBody = Buffer.from(JSON.stringify(samplePayload));
+  const result = verifyWebhookSignature({
+    rawBody,
+    signatureHeader: "sha256=abcd",
+    appSecret: ""
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, "missing_app_secret");
+});
+
 test("extracts inbound text messages", () => {
   const { messages, statuses } = extractInboundMessages(samplePayload);
 

@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class MissionStore {
-  constructor(filePath = "./data/memory/missions.json") {
+  constructor(filePath = process.env.JARVIS_MISSION_STORE || dataPath("memory/missions.json")) {
     this.filePath = filePath;
   }
 

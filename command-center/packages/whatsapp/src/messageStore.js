@@ -1,8 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { dataPath } from "../../core/src/data-paths.js";
 
 export class WhatsAppMessageStore {
-  constructor(filePath = "./data/memory/whatsapp-inbox.json") {
+  constructor(filePath = process.env.JARVIS_INBOX_STORE || dataPath("memory/whatsapp-inbox.json")) {
     this.filePath = filePath;
   }
 
