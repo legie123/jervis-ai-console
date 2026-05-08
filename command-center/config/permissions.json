@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "defaults": {
+    "externalCommunication": "confirm",
+    "fileWrite": "local_project_only",
+    "destructiveActions": "deny",
+    "networkActions": "confirm"
+  },
+  "whatsapp": {
+    "inboundWebhook": "allow_with_verify_token",
+    "webhookSignature": "recommended",
+    "send": "confirm"
+  },
+  "scheduler": {
+    "activateDueDrafts": "allow",
+    "backgroundLoop": "env_gated",
+    "autoSend": "deny"
+  },
+  "backup": {
+    "create": "allow",
+    "exportState": "allow",
+    "restore": "confirm"
+  },
+  "obsidian": {
+    "syncSummary": "confirm",
+    "write": "env_gated"
+  },
+  "graphify": {
+    "exportMap": "allow",
+    "write": "local_project_only"
+  },
+  "allowedRoot": "/Users/user/projects/JARVIS_COMMAND_CENTER"
+}

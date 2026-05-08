@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JERVIS — Bridge Command Deck (LIVE)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --lcars-orange: #ff9933;
+    --lcars-cyan:   #99ccff;
+    --lcars-purple: #cc99cc;
+    --lcars-red:    #ff3300;
+    --lcars-yellow: #ffcc66;
+    --lcars-blue:   #6699ff;
+    --lcars-pink:   #ff6699;
+    --lcars-gold:   #ffaa44;
+    --bg:           #000000;
+    --panel:        #0a0a14;
+    --text-dim:     #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--lcars-cyan);
+    font-family: 'Antonio', sans-serif; min-height: 100vh;
+    overflow-x: hidden; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .bridge {
+    display: grid;
+    grid-template-columns: 180px 1fr 220px;
+    grid-template-rows: 80px 1fr 60px;
+    gap: 8px; padding: 8px; min-height: 100vh;
+    grid-template-areas:
+      "topL  topbar topR"
+      "leftR center rightR"
+      "footL footer footR";
+  }
+  .top-left, .top-right, .top-bar, .foot-left, .foot-right, .footer { padding: 14px 22px; }
+  .top-left  { grid-area: topL; background: var(--lcars-orange); border-radius: 0 0 0 60px; border-top-left-radius: 60px;
+               display:flex; align-items:flex-end; justify-content:flex-end; color:#000; font-weight:700; font-size:18px; }
+  .top-bar   { grid-area: topbar; background: var(--panel); border:2px solid var(--lcars-orange); border-radius:40px;
+               padding:14px 28px; display:flex; justify-content:space-between; align-items:center; }
+  .top-right { grid-area: topR; background: var(--lcars-purple); border-radius:0 0 60px 0; border-top-right-radius:60px;
+               display:flex; align-items:flex-end; color:#000; font-weight:700; font-size:13px; }
+  .left-rail, .right-rail { display:flex; flex-direction:column; gap:6px; }
+  .left-rail  { grid-area: leftR; }
+  .right-rail { grid-area: rightR; }
+  .center { grid-area: center; display:grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto auto; gap:10px; }
+  .foot-left  { grid-area: footL; background: var(--lcars-orange); border-radius:60px 0 0 0; border-bottom-left-radius:60px; }
+  .foot-right { grid-area: footR; background: var(--lcars-purple); border-radius:0 60px 0 0; border-bottom-right-radius:60px; }
+  .footer { grid-area: footer; background:var(--panel); border:2px solid var(--lcars-purple); border-radius:40px;
+            padding:10px 28px; display:flex; justify-content:space-between; align-items:center;
+            font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--lcars-cyan); }
+
+  .rail-btn { padding:16px 14px; color:#000; font-weight:700; font-size:12px; text-align:right;
+              cursor:pointer; transition:transform .15s, filter .15s; }
+  .rail-btn:hover { transform: translateX(-4px); filter: brightness(1.15); }
+  .left-rail .rail-btn:nth-child(1) { background: var(--lcars-cyan);   border-radius: 0 30px 30px 0; }
+  .left-rail .rail-btn:nth-child(2) { background: var(--lcars-yellow); }
+  .left-rail .rail-btn:nth-child(3) { background: var(--lcars-purple); }
+  .left-rail .rail-btn:nth-child(4) { background: var(--lcars-blue);   }
+  .left-rail .rail-btn:nth-child(5) { background: var(--lcars-pink);   }
+  .left-rail .rail-btn:nth-child(6) { background: var(--lcars-gold);   border-radius: 0 30px 30px 0; }
+  .right-rail .rail-btn { text-align: left; }
+  .right-rail .rail-btn:nth-child(1) { background: var(--lcars-purple); border-radius: 30px 0 0 30px; }
+  .right-rail .rail-btn:nth-child(2) { background: var(--lcars-blue);   }
+  .right-rail .rail-btn:nth-child(3) { background: var(--lcars-cyan);   }
+  .right-rail .rail-btn:nth-child(4) { background: var(--lcars-yellow); border-radius: 30px 0 0 30px; }
+
+  .module { background: linear-gradient(160deg, #07070f 0%, #11111c 100%); border-left:6px solid var(--lcars-orange);
+            border-radius:4px 24px 24px 4px; padding:18px 20px; position:relative; overflow:hidden;
+            transition:transform .2s, box-shadow .2s; }
+  .module:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(255,153,51,.18); }
+  .module h3 { color: var(--lcars-orange); font-size:18px; font-weight:700; margin-bottom:6px; letter-spacing:0.08em; }
+  .module .code { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-dim); margin-bottom:12px; }
+  .module p { color: var(--lcars-cyan); font-size:12px; line-height:1.5; text-transform:none; letter-spacing:0.02em;
+              font-family:'JetBrains Mono',monospace; }
+  .module .pulse { position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%;
+                   background: #444; }
+  .module.online  .pulse { background:#00ff88; box-shadow:0 0 10px #00ff88; animation:pulse 1.6s infinite; }
+  .module.warn    .pulse { background:var(--lcars-yellow); box-shadow:0 0 10px var(--lcars-yellow); animation:pulse 1.4s infinite; }
+  .module.err     .pulse { background:var(--lcars-red); box-shadow:0 0 10px var(--lcars-red); animation:pulse 1s infinite; }
+  .module.standby .pulse { background:#888; }
+  .module.offline .pulse { background:#333; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .m-warp    { border-color: var(--lcars-orange); } .m-warp h3    { color: var(--lcars-orange); }
+  .m-sensor  { border-color: var(--lcars-cyan);   } .m-sensor h3  { color: var(--lcars-cyan);   }
+  .m-shields { border-color: var(--lcars-red);    } .m-shields h3 { color: var(--lcars-red);    }
+  .m-holo    { border-color: var(--lcars-purple); } .m-holo h3    { color: var(--lcars-purple); }
+  .m-trans   { border-color: var(--lcars-blue);   } .m-trans h3   { color: var(--lcars-blue);   }
+  .m-database{ border-color: var(--lcars-gold);   } .m-database h3{ color: var(--lcars-gold);   }
+  .m-bridge  { border-color: var(--lcars-pink);   } .m-bridge h3  { color: var(--lcars-pink);   }
+
+  .system-id { color: var(--lcars-orange); font-size:22px; font-weight:700; letter-spacing:0.12em; }
+  .system-id span { color: var(--lcars-cyan); font-size:12px; margin-left:8px; }
+  .alert-status { display:flex; gap:14px; align-items:center; }
+  .alert { padding:6px 18px; border-radius:20px; font-size:11px; font-weight:700; color:#000; cursor:pointer; }
+  .alert.green  { background: #00cc66; }
+  .alert.yellow { background: var(--lcars-yellow); }
+  .alert.red    { background: var(--lcars-red); color:#fff; animation: pulse 1.2s infinite; }
+  .alert.offline{ background: #444; color:#888; }
+
+  .ticker { font-family:'JetBrains Mono',monospace; font-size:11px; color: var(--lcars-cyan); }
+  .ticker .label { color: var(--text-dim); margin-right:6px; }
+  .ticker .live { color: #00ff88; margin-left: 8px; font-weight:700; }
+  .ticker .live.off { color: var(--lcars-red); }
+
+  .cmd-bar { grid-column: 1 / -1; display:flex; gap:10px; margin-top:4px; }
+  .cmd-bar input { flex:1; background:#050510; border:2px solid var(--lcars-orange); border-radius:24px;
+                   padding:12px 22px; color:var(--lcars-cyan); font-family:'JetBrains Mono',monospace;
+                   font-size:13px; outline:none; }
+  .cmd-bar input:focus { border-color: var(--lcars-cyan); box-shadow:0 0 12px rgba(153,204,255,.3); }
+  .cmd-bar button { background: var(--lcars-orange); color:#000; border:none; border-radius:24px;
+                    padding:0 28px; font-weight:700; cursor:pointer; font-family:'Antonio',sans-serif; letter-spacing:0.1em; }
+  .cmd-bar button:hover { background: var(--lcars-yellow); }
+
+  .agent-row { display:flex; gap:10px; }
+  .agent { background:#0d0d18; border:1px solid #222; border-radius:14px; padding:5px 12px;
+           font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--lcars-cyan);
+           display:flex; align-items:center; gap:6px; }
+  .agent .dot { width:8px; height:8px; border-radius:50%; background:#00ff88; box-shadow:0 0 6px #00ff88; }
+  .agent.idle .dot { background: var(--lcars-yellow); box-shadow:0 0 6px var(--lcars-yellow); }
+  .agent.off  .dot { background:#444; box-shadow:none; }
+
+  .log { grid-column: 1 / -1; background:#050510; border:1px solid #1a1a2a; border-radius:16px;
+         padding:14px 20px; font-family:'JetBrains Mono',monospace; font-size:11px;
+         color:var(--lcars-cyan); height:130px; overflow-y:auto; text-transform:none; letter-spacing:0; }
+  .log .line { margin-bottom:4px; }
+  .log .ts { color: var(--text-dim); }
+  .log .ok { color:#00ff88; } .log .warn { color: var(--lcars-yellow); } .log .err { color: var(--lcars-red); }
+  .log .mod { color: var(--lcars-orange); }
+</style>
+</head>
+<body>
+<div class="bridge">
+  <div class="top-left">JRV-01</div>
+  <div class="top-bar">
+    <div class="system-id">JERVIS BRIDGE <span id="src">:: AWAITING CONNECTION...</span></div>
+    <div class="agent-row" id="agentRow"></div>
+    <div class="alert-status"><div class="alert offline" id="alertBadge">DISCONNECTED</div></div>
+  </div>
+  <div class="top-right" id="stardate">STARDATE ----.-</div>
+
+  <div class="left-rail">
+    <div class="rail-btn">WARP CORE</div>
+    <div class="rail-btn">SENSORS</div>
+    <div class="rail-btn">SHIELDS</div>
+    <div class="rail-btn">HOLODECK</div>
+    <div class="rail-btn">TRANSPORTER</div>
+    <div class="rail-btn">DATABASE</div>
+  </div>
+
+  <div class="center" id="modules"></div>
+
+  <div class="right-rail">
+    <div class="rail-btn" onclick="alertLevel('GREEN')">CONDITION GREEN</div>
+    <div class="rail-btn" onclick="alertLevel('YELLOW')">YELLOW ALERT</div>
+    <div class="rail-btn" onclick="alertLevel('RED')">RED ALERT</div>
+    <div class="rail-btn" onclick="reconnect()">RECONNECT</div>
+  </div>
+
+  <div class="foot-left"></div>
+  <div class="footer">
+    <div class="ticker" id="metrics"><span class="label">CONNECTING...</span></div>
+    <div class="ticker"><span class="label">UPLINK</span><span id="uplink" class="live off">OFFLINE</span></div>
+  </div>
+  <div class="foot-right"></div>
+</div>
+
+<!-- Inject command bar + log into center grid via JS to keep them under modules -->
+
+<script>
+  const ENDPOINT = 'http://localhost:7777';
+  const POLL_MS  = 5000;
+
+  const MODULE_DEFS = [
+    { id: 'MOD-02.WarpCore',    cls: 'm-warp',    title: 'Warp Core',         code: 'MOD-02 :: ENGINE' },
+    { id: 'MOD-03.Sensors',     cls: 'm-sensor',  title: 'Sensor Array',      code: 'MOD-03 :: INTEL' },
+    { id: 'MOD-05.Shields',     cls: 'm-shields', title: 'Shields',           code: 'MOD-05 :: SECURITY' },
+    { id: 'MOD-04.Holodeck',    cls: 'm-holo',    title: 'Holodeck',          code: 'MOD-04 :: SIMULATION' },
+    { id: 'MOD-06.Transporter', cls: 'm-trans',   title: 'Transporter',       code: 'MOD-06 :: HANDOFF' },
+    { id: 'MOD-07.Database',    cls: 'm-database',title: 'Starfleet Database',code: 'MOD-07 :: MEMORY' },
+  ];
+
+  const center = document.getElementById('modules');
+  const elModules = {};
+  for (const m of MODULE_DEFS) {
+    const el = document.createElement('div');
+    el.className = `module ${m.cls} offline`;
+    el.innerHTML = `<div class="pulse"></div><h3>${m.title}</h3><div class="code">${m.code}</div><p data-note>—</p>`;
+    center.appendChild(el);
+    elModules[m.id] = el;
+  }
+
+  // command bar + log injected
+  const cmdBar = document.createElement('div');
+  cmdBar.className = 'cmd-bar';
+  cmdBar.innerHTML = `<input id="cmd" placeholder="COMPUTER, AWAITING ORDERS..." />
+                      <button onclick="executeCmd()">ENGAGE</button>`;
+  center.appendChild(cmdBar);
+
+  const logEl = document.createElement('div');
+  logEl.className = 'log';
+  logEl.id = 'log';
+  center.appendChild(logEl);
+
+  const STATUS_TO_CLASS = { ONLINE:'online', INIT:'warn', WARN:'warn', STANDBY:'standby', OFFLINE:'offline', DEGRADED:'err', ERR:'err' };
+
+  function logLine(text, kind='ok') {
+    const ts = new Date().toISOString().slice(11,19);
+    const div = document.createElement('div');
+    div.className = 'line';
+    div.innerHTML = `<span class="ts">[${ts}]</span> <span class="${kind}">●</span> ${text}`;
+    logEl.insertBefore(div, logEl.firstChild);
+    while (logEl.children.length > 40) logEl.lastChild.remove();
+  }
+
+  let lastEventCount = 0;
+  let connected = false;
+
+  async function poll() {
+    try {
+      const r = await fetch(`${ENDPOINT}/status`, { signal: AbortSignal.timeout(2000) });
+      if (!r.ok) throw new Error('http ' + r.status);
+      const s = await r.json();
+      if (!connected) { logLine('Uplink established with Warp Core.', 'ok'); connected = true; }
+      render(s);
+    } catch (e) {
+      if (connected) { logLine(`Uplink lost: ${e.message}`, 'err'); connected = false; }
+      renderOffline();
+    }
+  }
+
+  function render(s) {
+    document.getElementById('uplink').textContent = 'STABLE';
+    document.getElementById('uplink').className = 'live';
+    document.getElementById('src').textContent = `:: ${s.sessionId || 'live'}`;
+    document.getElementById('stardate').textContent = `STARDATE ${s.stardate || '----'}`;
+
+    // Alert
+    const ab = document.getElementById('alertBadge');
+    const lvl = (s.alert || 'GREEN').toUpperCase();
+    ab.className = 'alert ' + (lvl === 'RED' ? 'red' : lvl === 'YELLOW' ? 'yellow' : 'green');
+    ab.textContent = `CONDITION ${lvl}`;
+
+    // Agents
+    const ar = document.getElementById('agentRow');
+    ar.innerHTML = '';
+    for (const a of (s.swarm?.agents || [])) {
+      const d = document.createElement('div');
+      d.className = 'agent';
+      d.innerHTML = `<span class="dot"></span>${a.id.toUpperCase()}`;
+      ar.appendChild(d);
+    }
+
+    // Modules
+    for (const [id, el] of Object.entries(elModules)) {
+      const m = s.modules?.[id];
+      if (!m) continue;
+      el.classList.remove('online','warn','err','standby','offline');
+      el.classList.add(STATUS_TO_CLASS[m.status] || 'offline');
+      el.querySelector('[data-note]').textContent = `${m.status} — ${m.note || ''}`;
+    }
+
+    // Metrics
+    const m = s.metrics || {};
+    document.getElementById('metrics').innerHTML =
+      `<span class="label">TASKS</span>${m.tasks||0}   <span class="label">ALERTS</span>${m.alerts||0}   <span class="label">TOKENS</span>${m.tokens||0}   <span class="label">COST</span>$${(m.cost||0).toFixed(2)}`;
+
+    // Recent events → log
+    const events = (s.recentEvents || []).slice().reverse();
+    if (events.length > lastEventCount) {
+      const newOnes = events.slice(lastEventCount);
+      for (const ev of newOnes) {
+        const kind = { err:'err', warn:'warn', mod:'mod', ok:'ok', info:'ok' }[ev.level] || 'ok';
+        logLine(`<span class="mod">${ev.mod}</span> ${ev.msg}`, kind);
+      }
+      lastEventCount = events.length;
+    }
+  }
+
+  function renderOffline() {
+    document.getElementById('uplink').textContent = 'OFFLINE';
+    document.getElementById('uplink').className = 'live off';
+    document.getElementById('alertBadge').className = 'alert offline';
+    document.getElementById('alertBadge').textContent = 'DISCONNECTED';
+    for (const el of Object.values(elModules)) {
+      el.classList.remove('online','warn','err','standby');
+      el.classList.add('offline');
+    }
+  }
+
+  async function alertLevel(level) {
+    if (!connected) { logLine('Cannot change alert: uplink offline.', 'err'); return; }
+    try {
+      await fetch(`${ENDPOINT}/alert`, { method:'POST', headers:{'Content-Type':'application/json'},
+                                          body: JSON.stringify({ level }) });
+      logLine(`Alert request sent: CONDITION ${level}`, 'ok');
+    } catch (e) { logLine(`Alert failed: ${e.message}`, 'err'); }
+  }
+
+  async function executeCmd() {
+    const v = document.getElementById('cmd').value.trim();
+    if (!v) return;
+    document.getElementById('cmd').value = '';
+    logLine(`> ${v}`, 'ok');
+    if (!connected) { logLine('Cannot dispatch: uplink offline.', 'err'); return; }
+    try {
+      const r = await fetch(`${ENDPOINT}/scan`, { method:'POST', body: v });
+      const j = await r.json();
+      if (j.safe) logLine(`Shields: clear. (Command would route to Warp Core.)`, 'ok');
+      else        logLine(`Shields BLOCKED: ${j.threats.slice(0,3).join(', ')}`, 'err');
+    } catch (e) { logLine(`Dispatch error: ${e.message}`, 'err'); }
+  }
+
+  function reconnect() { logLine('Forcing reconnect...', 'ok'); poll(); }
+
+  document.getElementById('cmd').addEventListener('keydown', e => { if (e.key === 'Enter') executeCmd(); });
+
+  poll();
+  setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

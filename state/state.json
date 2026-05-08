@@ -1,0 +1,380 @@
+{
+  "sessionId": "jervis_1778037650691_3svfp0",
+  "startedAt": "2026-05-06T03:20:50.691Z",
+  "stardate": "79126.6",
+  "alert": "GREEN",
+  "swarm": {
+    "topology": "mesh",
+    "maxAgents": 5,
+    "agents": [
+      {
+        "id": "claude-coder",
+        "role": "implementation",
+        "model": "claude-opus-4-7",
+        "mod": "WarpCore"
+      },
+      {
+        "id": "codex-reviewer",
+        "role": "code-review",
+        "model": "gpt-5-codex",
+        "mod": "Holodeck"
+      },
+      {
+        "id": "gemini-researcher",
+        "role": "web-research",
+        "model": "gemini-3-pro",
+        "mod": "Sensors"
+      },
+      {
+        "id": "sensor-poll",
+        "role": "event-watcher",
+        "model": "haiku-4-5",
+        "mod": "Sensors"
+      },
+      {
+        "id": "memory-keeper",
+        "role": "persistence",
+        "model": "haiku-4-5",
+        "mod": "Database"
+      }
+    ]
+  },
+  "modules": {
+    "MOD-01.Bridge": {
+      "status": "OFFLINE",
+      "note": "launch separately: cd src && pnpm dev"
+    },
+    "MOD-02.WarpCore": {
+      "status": "ONLINE",
+      "note": "this process"
+    },
+    "MOD-03.Sensors": {
+      "status": "ONLINE",
+      "note": "WA bridge UP @ http://localhost:8787 · queued=0"
+    },
+    "MOD-04.Holodeck": {
+      "status": "STANDBY",
+      "note": "on-demand sandbox"
+    },
+    "MOD-05.Shields": {
+      "status": "ONLINE",
+      "note": "aidefence + guard active"
+    },
+    "MOD-06.Transporter": {
+      "status": "ONLINE",
+      "note": "handoff file ready"
+    },
+    "MOD-07.Database": {
+      "status": "ONLINE",
+      "note": "vault: /Users/user/Desktop/BUSSINES/Antigraity/TRADE AI"
+    }
+  },
+  "metrics": {
+    "tokens": 0,
+    "cost": 0,
+    "tasks": 0,
+    "alerts": 0
+  },
+  "recentEvents": [
+    {
+      "ts": "11:02:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "11:02:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "11:01:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "11:01:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "11:00:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:59:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:59:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:58:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:58:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:57:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:56:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:56:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:55:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:55:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:54:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:53:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:53:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:52:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:52:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:51:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:50:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:50:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:49:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:49:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:48:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:47:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:47:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:46:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:46:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:45:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:44:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:44:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:43:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:43:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:42:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:41:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:41:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:40:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:40:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:39:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:38:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:38:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:37:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:37:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:36:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:35:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:35:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:34:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "10:34:20",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 51 root entries"
+    },
+    {
+      "ts": "10:33:50",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    }
+  ]
+}
