@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T21:00:00Z
+last_session_end: 2026-05-09T22:00:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Test contract feed Ruflo + GoodMood
+
+**DONE:** `command-center/test/adapter-feeds-ruflo-goodmood.test.js`: audit JSONL temporar + `JARVIS_ADAPTER_*` true → `GET /api/ruflo/feed` și `/api/good-mood/feed` returnează rânduri mapate. Suite **92** teste verzi pe `main`.
+
+**NEXT:** (Opțional) test similar pentru Hermes; s3-voice / Figma.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — Adapters Obsidian / Ruflo / GoodMood (contract operator)
 
