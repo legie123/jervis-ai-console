@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T22:00:00Z
+last_session_end: 2026-05-09T23:00:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Ruflo feed obligatoriu în UI + UIX tokens
+
+**DONE:** `collaboration-feeds.js`: **`/api/ruflo/feed` mereu apelat** chiar dacă registry-ul are doar alte adaptoare. Test `collaboration-feeds.test.js`. Copy: inbox fallback Ruflo, copilot, stage Ops, first-run rail, `.env.example` + LOCAL_SETUP. **UIX (plan premium):** token-uri `--space-*`, `--radius-*`, `--shadow-stage`; rail / `stage-header` / `panel-section` pe token-uri + micro-transiție nav.
+
+**NEXT:** Branch **`cursor/ruflo-mandatory-uix`** → PR → merge `main`. Voice / Figma backlog.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — Test contract feed Ruflo + GoodMood
 
