@@ -52,6 +52,16 @@ function resolvePendingGateStep(pendingGate) {
   return true;
 }
 
+export function applyWorkspaceVisibility(documentRef, activeId) {
+  if (!NAV_SECTION_IDS.includes(activeId)) return false;
+  NAV_SECTION_IDS.forEach((sid) => {
+    const sectionEl = documentRef.getElementById(sid);
+    if (!sectionEl) return;
+    sectionEl.toggleAttribute("hidden", sid !== activeId);
+  });
+  return true;
+}
+
 export function createShellNavigation({
   documentRef = document,
   navButtons = [],
@@ -61,7 +71,8 @@ export function createShellNavigation({
   operatorSettings,
   pendingGate,
   onEmergencyStop,
-  onError
+  onError,
+  onActiveSectionChange
 }) {
   function closeShortcutsOverlay() {
     if (shortcutsOverlay) shortcutsOverlay.hidden = true;
@@ -72,13 +83,7 @@ export function createShellNavigation({
   }
 
   function scrollToSection(id) {
-    if (!NAV_SECTION_IDS.includes(id)) return;
-
-    NAV_SECTION_IDS.forEach((sid) => {
-      const sectionEl = documentRef.getElementById(sid);
-      if (!sectionEl) return;
-      sectionEl.toggleAttribute("hidden", sid !== id);
-    });
+    if (!applyWorkspaceVisibility(documentRef, id)) return;
 
     navButtons.forEach((button) => {
       const active = button.dataset.target === id;
@@ -95,6 +100,8 @@ export function createShellNavigation({
     const blurbEl = documentRef.getElementById("stageBlurb");
     if (meta && titleEl) titleEl.textContent = meta.title;
     if (meta && blurbEl) blurbEl.textContent = meta.blurb;
+
+    onActiveSectionChange?.(id);
   }
 
   navButtons.forEach((button) => {

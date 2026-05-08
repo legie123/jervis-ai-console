@@ -72,6 +72,7 @@ let unifiedInboxCtl = null;
 let bootProbeOffline = false;
 let missionCopilotMeta = { preview: "", planStatus: "" };
 let uxRail = null;
+let activeSectionId = "section-mission";
 
 function getCopilotSnapshot() {
   return {
@@ -79,7 +80,8 @@ function getCopilotSnapshot() {
     bootOffline: bootProbeOffline,
     emergencyActive: Boolean(lastHealth?.security?.emergency?.active),
     missionPreview: missionCopilotMeta.preview || "",
-    planStatus: missionCopilotMeta.planStatus || ""
+    planStatus: missionCopilotMeta.planStatus || "",
+    activeSectionId
   };
 }
 
@@ -822,6 +824,10 @@ shellNavigation = createShellNavigation({
   onEmergencyStop: (source) => triggerEmergencyStop(source),
   onError: (error) => {
     toastRegion.push(error?.message || String(error), "error");
+  },
+  onActiveSectionChange: (id) => {
+    activeSectionId = id;
+    uxRail?.updateCopilot?.(getCopilotSnapshot);
   }
 });
 
