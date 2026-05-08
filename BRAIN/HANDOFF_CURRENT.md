@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-08T23:59:00Z
+last_session_end: 2026-05-09T12:00:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Interactive spotlight tour (v2 guide layer)
+
+**DONE:** Tur spotlight vanilla (`interactive-guide.js`): 5 pași (topbar, rail, stage, inspector, copilot), overlay + cutout, Esc/skip/click scrim închide; Done setează `localStorage` `jervis.commandCenter.spotlight.v1.done`. Banner first-run: buton **Spotlight tour**; paletă: **Help · Spotlight workspace tour**. `data-guide` pe landmark-uri în `index.html`. Test `test/interactive-guide.test.js`. Branch: **`cursor/dashboard-workspace-shell`** (continuare).
+
+**NEXT:** Figma frames după tokens; Codex pentru suite HTTP/whatsapp store dacă rămân roșii.
+
+---
 
 ## Last session summary (2026-05-08, [cursor]) — Dashboard workspace shell (anti-scroll IA)
 
