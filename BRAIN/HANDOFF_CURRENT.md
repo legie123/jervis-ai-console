@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T15:00:00Z
+last_session_end: 2026-05-09T16:30:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Prod web build + http tests deterministic
+
+**DONE:** Command Center web: Vite 6 build (`apps/web/dist`), operator serves `dist` when present, `postbuild-copy` pentru `graph-viewer.js`, root `npm run build` / `dev:web`. **`http.test.js`:** `JARVIS_DRAFT_STORE` în temp dir (izolare față de alte teste paralele); `WHATSAPP_REAL_SEND_ENABLED=false` + token/phone ID goale la load modul (send rămâne blocat indiferent de `.env` user). `npm test` stabil (91/91). Push: **`cursor/dashboard-workspace-shell`** → `9f5013f` pe `origin`.
+
+**NEXT:** Hermes / Codex: `npm run build` în CI înainte de test dacă vreți operator static din `dist`; document scurt în `command-center/docs` (build înainte de run prod-like). Figma link + s3-voice rămân backlog product.
+
+---
 
 ## Plan follow-up (2026-05-09) — status implementare
 
