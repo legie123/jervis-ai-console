@@ -24,6 +24,7 @@ export function mountPremiumUxRail({ onboardingHost, copilotHost, onSpotlightTou
             Non-intrusive mode: use <kbd class="kbd-chip">⌘K</kbd> for actions,
             <kbd class="kbd-chip">⌘.</kbd> emergency stop,
             <kbd class="kbd-chip">?</kbd> shortcuts.
+            Unified inbox always syncs <strong>Ruflo Agents</strong> (<code>/api/ruflo/feed</code>) alongside other adapters.
             Mission plans stream below the orb when boot is idle.
           </p>
         </div>

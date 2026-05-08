@@ -25,6 +25,7 @@ test("copilot hints show confirmation guidance", () => {
 test("copilot hints default shortcut tip", () => {
   const text = resolveCopilotHint({ effectiveFsm: "STANDBY", bootOffline: false });
   assert.match(text, /⌘K/);
+  assert.match(text, /Ruflo feed/i);
 });
 
 test("copilot hints append workspace nudge on standby", () => {
@@ -33,7 +34,7 @@ test("copilot hints append workspace nudge on standby", () => {
     bootOffline: false,
     activeSectionId: "section-ops"
   });
-  assert.match(ops, /Ops — drafts/);
+  assert.match(ops, /Ruflo Agents feed/i);
 
   const graph = resolveCopilotHint({
     effectiveFsm: "STANDBY",

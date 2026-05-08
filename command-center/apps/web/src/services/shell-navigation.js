@@ -13,7 +13,7 @@ export const SECTION_STAGE_META = Object.freeze({
   },
   "section-ops": {
     title: "Ops",
-    blurb: "Drafts, inbox, and send gates — unfold panels only when you need them."
+    blurb: "Drafts, inbox, send gates, and Ruflo Agents channel (live feed + audit-backed events)."
   },
   "section-bridge": {
     title: "Bridge",

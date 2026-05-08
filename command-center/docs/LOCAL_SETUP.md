@@ -65,7 +65,7 @@ The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/f
 
    or set `JARVIS_ADAPTER_OBSIDIAN_ENABLED=true`, `JARVIS_ADAPTER_RUFLO_ENABLED=true`, `JARVIS_ADAPTER_GOOD_MOOD_ENABLED=true` (and Hermes if you use dispatch handoffs).
 
-2. **Obsidian (writes + sync API)** still needs a vault path and write flag (see [Obsidian Sync](#obsidian-sync) below). Ruflo and GoodMood feeds aggregate **audit log** rows whose `source` / `action` text matches those adapters (for example log lines containing `ruflo`, `swarm`, `good_mood`, `coach`). Emit audit events from your agents with those keywords so the inbox fills.
+2. **Obsidian (writes + sync API)** still needs a vault path and write flag (see [Obsidian Sync](#obsidian-sync) below). **Ruflo Agents:** the web UI **always** calls `/api/ruflo/feed` on inbox refresh; set `JARVIS_ADAPTER_RUFLO_ENABLED=true` and write audit events whose `source` / `action` match `ruflo`, `swarm`, or `claude_flow` so the channel shows real rows instead of only the fallback card. GoodMood uses the same audit pattern with `good_mood`, `coach`, `mood`.
 
 ## Scheduler
 
