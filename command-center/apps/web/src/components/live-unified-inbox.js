@@ -16,7 +16,8 @@ export const PREMIUM_CHANNEL_FEEDS = Object.freeze([
     label: "Ruflo Agents",
     endpoint: "/api/ruflo/feed",
     fallbackTitle: "Ruflo swarm telemetry",
-    fallbackBody: "Swarm channel visible with adapter fallback.",
+    fallbackBody:
+      "Command Center always polls this feed. Enable JARVIS_ADAPTER_RUFLO_ENABLED and emit audit rows tagged ruflo / swarm / claude_flow.",
     risk: "MED"
   },
   {

@@ -1,6 +1,6 @@
 const IDLE_WORKSPACE_NUDGE = Object.freeze({
   "section-mission": "Mission — plan text & JSON below.",
-  "section-ops": "Ops — drafts, inbox, gated send.",
+  "section-ops": "Ops — drafts, inbox, gated send; Ruflo Agents feed is always polled for swarm telemetry.",
   "section-bridge": "Bridge — live posture & payloads.",
   "section-system": "System — scheduler & backups.",
   "section-graph": "Graph — search nodes & export map."
@@ -8,7 +8,7 @@ const IDLE_WORKSPACE_NUDGE = Object.freeze({
 
 function idleShortcutTip(snapshot) {
   const base =
-    "Tip: ⌘K palette · Voice orb · Unified inbox · ⌘. emergency · ? shortcuts · ⌘, settings.";
+    "Tip: ⌘K palette · Voice orb · Unified inbox (Ruflo feed always wired) · ⌘. emergency · ? shortcuts · ⌘, settings.";
   const sid = snapshot.activeSectionId;
   const extra = sid && IDLE_WORKSPACE_NUDGE[sid] ? ` ${IDLE_WORKSPACE_NUDGE[sid]}` : "";
   return `${base}${extra}`;

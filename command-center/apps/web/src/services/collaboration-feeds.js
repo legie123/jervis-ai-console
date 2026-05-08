@@ -5,6 +5,8 @@ const DEFAULT_ENDPOINTS = Object.freeze({
   good_mood: "/api/good-mood/feed"
 });
 
+const MANDATORY_ADAPTER_KEYS = Object.freeze(["ruflo"]);
+
 const ADAPTER_CACHE_TTL_MS = 30_000;
 
 let adapterRegistryCache = {
@@ -41,15 +43,24 @@ export async function loadCollaborationFeeds({
 }) {
   const adapters = await loadAdapterRegistry(apiOptional, { force });
   const feeds = {};
-  const targets =
+  const baseTargets =
     adapters.length > 0
       ? adapters
           .filter((adapter) => adapter?.enabled && adapter?.feedPath)
           .map((adapter) => [normalizeAdapterKey(adapter.id), adapter.feedPath])
       : Object.entries(fallbackEndpoints);
 
+  const targetMap = new Map(baseTargets);
+  for (const key of MANDATORY_ADAPTER_KEYS) {
+    const normalized = normalizeAdapterKey(key);
+    if (!targetMap.has(normalized)) {
+      const endpoint = fallbackEndpoints[key] || DEFAULT_ENDPOINTS[key];
+      if (endpoint) targetMap.set(normalized, endpoint);
+    }
+  }
+
   await Promise.all(
-    targets.map(async ([key, endpoint]) => {
+    [...targetMap.entries()].map(async ([key, endpoint]) => {
       const payload = await apiOptional(endpoint);
       const rows = payload?.entries || payload?.items || payload?.messages || payload?.events || payload?.feed || [];
       if (Array.isArray(rows) && rows.length) feeds[key] = rows;
