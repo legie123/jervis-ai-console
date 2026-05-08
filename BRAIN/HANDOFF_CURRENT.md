@@ -1,7 +1,7 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T16:30:00Z
+last_session_end: 2026-05-09T17:15:00Z
 next_recommended_agent: hermes
 ---
 
@@ -9,11 +9,19 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-09, [cursor]) — CI workflow + LOCAL_SETUP prod UI
+
+**DONE:** `.github/workflows/command-center.yml`: pe push/PR când se schimbă `command-center/**`, rulează `npm install`, `npm run build`, `npm test` în `command-center/` (Node 22). `docs/LOCAL_SETUP.md`: secțiuni **Production-style web UI (Vite)** + clarificare teste din folderul `command-center/`. Push pe **`cursor/dashboard-workspace-shell`** (PR #4 se actualizează).
+
+**NEXT:** După merge PR #4, verifică tab-ul Checks pe GitHub; opțional `npm ci` + commit `package-lock.json` pentru cache reproducibil. Figma + s3-voice neschimbate.
+
+---
+
 ## Last session summary (2026-05-09, [cursor]) — Prod web build + http tests deterministic
 
 **DONE:** Command Center web: Vite 6 build (`apps/web/dist`), operator serves `dist` when present, `postbuild-copy` pentru `graph-viewer.js`, root `npm run build` / `dev:web`. **`http.test.js`:** `JARVIS_DRAFT_STORE` în temp dir (izolare față de alte teste paralele); `WHATSAPP_REAL_SEND_ENABLED=false` + token/phone ID goale la load modul (send rămâne blocat indiferent de `.env` user). `npm test` stabil (91/91). Push: **`cursor/dashboard-workspace-shell`** → `9f5013f` pe `origin`.
 
-**NEXT:** Hermes / Codex: `npm run build` în CI înainte de test dacă vreți operator static din `dist`; document scurt în `command-center/docs` (build înainte de run prod-like). Figma link + s3-voice rămân backlog product.
+**NEXT:** (Îndeplinit în sesiunea următoare: CI + LOCAL_SETUP.) Figma link + s3-voice rămân backlog product.
 
 ---
 
