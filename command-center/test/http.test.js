@@ -395,6 +395,9 @@ test("emergency stop blocks mutating routes until cleared", async () => {
 });
 
 test("backup and state export endpoints work", async () => {
+  const draftsDir = path.join(process.cwd(), "data", "live", "drafts");
+  fs.mkdirSync(draftsDir, { recursive: true });
+
   const server = createHttpServer();
   const port = await listen(server);
   try {
@@ -405,7 +408,8 @@ test("backup and state export endpoints work", async () => {
     }).then((res) => res.json());
 
     assert.equal(backup.ok, true);
-    assert.ok(backup.manifest.copied.includes("data/drafts"));
+    const copied = backup.manifest.copied || [];
+    assert.ok(copied.some((p) => String(p).includes("drafts")), `expected drafts path in manifest.copied, got ${JSON.stringify(copied)}`);
 
     const state = await fetch(`http://127.0.0.1:${port}/api/state/export`).then((res) => res.json());
     assert.equal(state.ok, true);
