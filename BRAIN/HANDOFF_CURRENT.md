@@ -1,13 +1,23 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T12:00:00Z
+last_session_end: 2026-05-09T15:00:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Plan follow-up (2026-05-09) — status implementare
+
+**PR #2:** MERGED în `codex/whatsapp-cloud-run-live` — [cursor] Premium dashboard workspace shell + spotlight tour + draft JSON recovery (merge by `legie123`).
+
+**Figma (link TBD de product owner):** Obiective pentru următoarea iteratie vizuală: (1) variabile / tokens (fundal, glass, accent cyan/violet, border, text) aliniate cu `:root` în `command-center/apps/web/src/styles.css`; (2) un frame **Desktop 1440** cu zonele **Rail · Stage · Inspector** + stări (default, focus mission, waiting confirmation); (3) componente: `nav-btn`, `panel-section`, `stage-header`, `context-copilot`. Când există URL fișier Figma, Hermes/Cursor mapează 1:1 cu markup-ul actual.
+
+**Sprint s3-voice (draft pentru Codex/Claude):** wake-word opțional (user opt-in, localStorage); hands-free path: STT start/stop + orb states + Esc abort; TTS politică (nu citește tokens/secrets); integrare cu gates existente (`WAITING_CONFIRMATION`, emergency stop); teste pentru parser voice dacă rămân pure. Owner tehnic recomandat: Codex (implementare + teste), Claude (decizii safety).
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — WhatsApp draft store JSON recovery (test suite green)
 
@@ -29,7 +39,7 @@ What the last agent left for the next.
 
 **DONE:** Tur spotlight vanilla (`interactive-guide.js`): 5 pași (topbar, rail, stage, inspector, copilot), overlay + cutout, Esc/skip/click scrim închide; Done setează `localStorage` `jervis.commandCenter.spotlight.v1.done`. Banner first-run: buton **Spotlight tour**; paletă: **Help · Spotlight workspace tour**. `data-guide` pe landmark-uri în `index.html`. Test `test/interactive-guide.test.js`. Branch: **`cursor/dashboard-workspace-shell`** (continuare).
 
-**NEXT:** Figma frames după tokens; Codex pentru suite HTTP/whatsapp store dacă rămân roșii.
+**NEXT:** Figma frames după tokens (vezi secțiunea „Figma” de sus).
 
 ---
 
@@ -37,9 +47,9 @@ What the last agent left for the next.
 
 **DONE:** Command Center **main column** is no longer one long scroll of all sections: rail/palette (`scrollToSection`) toggles **`hidden`** per workspace (`section-mission` … `section-graph`). Added **stage header** (title + blurb from `SECTION_STAGE_META`). **Center-stage** bounded height + internal scroll; Ops/System extra panels default **collapsed** `<details>`. Branch: **`cursor/dashboard-workspace-shell`**. Reply: `BRAIN/handoff/cursor__to__hermes__T-2026-05-08-dashboard-workspace-shell__reply.md`.
 
-**BLOCKED:** Figma pass not run (needs MCP + target file). HTTP subset failing locally — likely operator/API drift, not these UI files.
+**BLOCKED:** Figma pass not run until design file link + MCP session (optional).
 
-**NEXT:** Hermes + Figma tokens/screens; then v2-interactive-guide spotlights on stable regions; Codex triage HTTP failures.
+**NEXT:** Hermes + Figma tokens/screens; spotlight tour livrat în PR #2 (merged).
 
 ---
 
