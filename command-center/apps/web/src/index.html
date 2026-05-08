@@ -26,7 +26,7 @@
     </div>
 
     <div class="app-shell">
-      <header class="topbar-elite glass-bar">
+      <header class="topbar-elite glass-bar" data-guide="topbar">
         <div class="topbar-left">
           <div id="mountJervisOrb" class="mount-jervis-orb"></div>
           <div class="brand-block">
@@ -56,11 +56,11 @@
 
       <div class="ux-premium-rail">
         <div id="mountFirstRunBanner" class="first-run-banner-host"></div>
-        <div id="mountContextCopilot" class="context-copilot-host"></div>
+        <div id="mountContextCopilot" class="context-copilot-host" data-guide="copilot"></div>
       </div>
 
       <div class="body-grid">
-        <nav class="nav-rail glass-panel" aria-label="Primary navigation">
+        <nav class="nav-rail glass-panel" aria-label="Primary navigation" data-guide="nav-rail">
           <button type="button" class="nav-btn is-active" data-target="section-mission" aria-current="page">
             <span class="nav-shortcut" aria-hidden="true">⌘1</span>
             Mission
@@ -84,7 +84,7 @@
         </nav>
 
         <main id="main-content" class="center-stage" tabindex="-1" aria-labelledby="stageTitle">
-          <header class="stage-header glass">
+          <header class="stage-header glass" data-guide="stage-header">
             <p class="stage-kicker">Workspace</p>
             <h2 id="stageTitle" class="stage-title">Mission</h2>
             <p id="stageBlurb" class="stage-blurb">
@@ -255,7 +255,7 @@
           </section>
         </main>
 
-        <aside class="inspector glass-panel" aria-label="Inspector">
+        <aside class="inspector glass-panel" aria-label="Inspector" data-guide="inspector">
           <div id="mountLiveUnifiedInbox"></div>
           <div id="mountStatusTiles" class="status-tiles"></div>
           <div id="mountAuditFeed"></div>
@@ -282,6 +282,7 @@
         <h2 id="shortcutsTitle">Keyboard shortcuts</h2>
         <ul class="shortcuts-list">
           <li><kbd>⌘</kbd><kbd>K</kbd> Command palette</li>
+          <li>Palette → Help · Spotlight workspace tour</li>
           <li><kbd>⌘</kbd><kbd>Enter</kbd> Confirm / advance pending gate</li>
           <li><kbd>Esc</kbd> Abort dialog</li>
           <li><kbd>⌘</kbd><kbd>1…5</kbd> Switch workspace (Mission…Graph)</li>

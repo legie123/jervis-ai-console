@@ -1,17 +1,3 @@
-import {
-  GRAPH_NODE_TYPES,
-  GRAPH_TYPE_META,
-  GRAPH_ZOOM,
-  clampZoom,
-  createGraphFilters,
-  filterGraphBySearch,
-  getGraphNodeContext,
-  layoutGraph,
-  nextZoom,
-  shortGraphLabel,
-  summarizeGraph
-} from "./graph-viewer.js";
-
 import { riskToLedIndex } from "./components/constants.js";
 import { createBootPoller } from "./components/boot-poller.js";
 import { mountJervisOrb } from "./components/jervis-orb.js";
@@ -27,6 +13,18 @@ import { mountPendingActionModal } from "./components/pending-action-modal.js";
 import { mountCommandPalette } from "./components/command-palette.js";
 import { mountOperatorSettings } from "./components/operator-settings.js";
 import { mountApprovalQueue } from "./components/approval-queue.js";
+import { mountLiveUnifiedInbox } from "./components/live-unified-inbox.js";
+import { mountPremiumUxRail } from "./components/premium-ux-rail.js";
+import { mountInteractiveGuide } from "./components/interactive-guide.js";
+import { loadCollaborationFeeds } from "./services/collaboration-feeds.js";
+import { createGraphRuntime } from "./services/graph-runtime.js";
+import {
+  clearEmergencyStop as clearEmergencyStopService,
+  resolveScopedToken as resolveScopedTokenService,
+  triggerEmergencyStop as triggerEmergencyStopService
+} from "./services/security-ops.js";
+import { createShellNavigation } from "./services/shell-navigation.js";
+import { createMissionStateStream, mergeBootAndMissionFsm } from "./services/mission-state-stream.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -62,34 +60,54 @@ const graphMatchCount = document.querySelector("#graphMatchCount");
 const graphSvg = document.querySelector("#graphSvg");
 const graphNodeDetails = document.querySelector("#graphNodeDetails");
 
-let currentGraphMap = null;
-let graphFiltersState = createGraphFilters();
-let graphView = { x: 0, y: 0, scale: GRAPH_ZOOM.initial };
-let graphDrag = null;
-let graphRelatedIds = new Set();
-let selectedGraphNodeId = "";
-
-/** Elite UI shared state */
-let liveFsmState = "STANDBY";
+/** Elite UI shared state — boot supervisor vs operator mission FSM merge */
+let bootFsmState = "STANDBY";
+let missionFsmState = "STANDBY";
 let riskTierIndex = 0;
 let lastHealth = null;
 let lastAuditEntries = [];
-let prevFsmForGate = "STANDBY";
+let prevBootFsmForGate = "STANDBY";
+let approvalQueueCtl = null;
+let unifiedInboxCtl = null;
+let bootProbeOffline = false;
+let missionCopilotMeta = { preview: "", planStatus: "" };
+let uxRail = null;
+
+function getCopilotSnapshot() {
+  return {
+    effectiveFsm: effectiveFsmState(),
+    bootOffline: bootProbeOffline,
+    emergencyActive: Boolean(lastHealth?.security?.emergency?.active),
+    missionPreview: missionCopilotMeta.preview || "",
+    planStatus: missionCopilotMeta.planStatus || ""
+  };
+}
 
 const toastRegion = mountToastRegion(document.querySelector("#mountToasts"));
 mountErrorBoundary(document.querySelector("#errorBoundaryBanner"));
 
-const orbApi = mountJervisOrb(document.querySelector("#mountJervisOrb"), () => liveFsmState);
-const fsmApi = mountFsmPill(document.querySelector("#mountFsmPill"), () => liveFsmState);
+function effectiveFsmState() {
+  return mergeBootAndMissionFsm(bootFsmState, missionFsmState);
+}
+
+const orbApi = mountJervisOrb(document.querySelector("#mountJervisOrb"), () => effectiveFsmState());
+const fsmApi = mountFsmPill(document.querySelector("#mountFsmPill"), () => effectiveFsmState());
 const riskApi = mountRiskIndicator(document.querySelector("#mountRiskIndicator"), () => riskTierIndex);
 
-mountVoiceOrb(document.querySelector("#mountVoiceOrb"), {
+const voiceOrbApi = mountVoiceOrb(document.querySelector("#mountVoiceOrb"), {
   onToggle: (on) => {
-    toastRegion.push(on ? "Voice channel armed (demo)" : "Voice channel idle", "info");
+    if (on) toastRegion.push("Voice channel armed", "info");
+  },
+  commandHandlers: {
+    show_new_messages: () => handleVoiceShowMessages(),
+    approve_last: () => handleVoiceApproveLast(),
+    read_aloud: () => handleVoiceReadSelected(),
+    voice_reply: () => handleVoiceReplySelected()
   }
 });
 
 const bootBadgeEl = document.querySelector("#mountBootBadge");
+const bootRetryBtn = document.querySelector("#bootRetryBtn");
 const clockEl = document.querySelector("#mountClock");
 
 function setClock() {
@@ -104,6 +122,7 @@ function paintFsmWidgets() {
   orbApi.update();
   fsmApi.update();
   riskApi.update();
+  uxRail?.updateCopilot?.(getCopilotSnapshot);
 }
 
 function updateBootBadge(text, mode = "loading") {
@@ -117,24 +136,42 @@ function updateBootBadge(text, mode = "loading") {
 const bootPoller = createBootPoller({
   onTick: (result) => {
     if (result.offline) {
-      updateBootBadge("BOOT OFFLINE · :7777 / :7778 (start supervisors)", "offline");
-      liveFsmState = "STANDBY";
+      bootProbeOffline = true;
+      if (result.cooldownActive && result.retryAtMs) {
+        const seconds = Math.max(1, Math.ceil((result.retryAtMs - Date.now()) / 1000));
+        updateBootBadge(`BOOT OFFLINE · breaker ${seconds}s`, "offline");
+      } else {
+        updateBootBadge("BOOT OFFLINE · :7777 / :7778 (start supervisors)", "offline");
+      }
+      bootFsmState = "STANDBY";
       paintFsmWidgets();
       return;
     }
+    bootProbeOffline = false;
     if (result.state) {
-      liveFsmState = result.state;
+      bootFsmState = result.state;
       updateBootBadge(`FSM · ${result.label} :${result.port}`, "online");
       paintFsmWidgets();
-      if (liveFsmState === "WAITING_CONFIRMATION" && prevFsmForGate !== "WAITING_CONFIRMATION") {
+      if (bootFsmState === "WAITING_CONFIRMATION" && prevBootFsmForGate !== "WAITING_CONFIRMATION") {
         pendingGate.open({
           message: "Supervisor requests explicit confirmation before ACTION."
         });
       }
-      prevFsmForGate = liveFsmState;
+      prevBootFsmForGate = bootFsmState;
     }
   }
 });
+
+function triggerBootRetry() {
+  bootPoller.retryNow?.();
+  updateBootBadge("BOOT RETRY · scanning supervisors…", "loading");
+  toastRegion.push("Boot probe retried", "info");
+}
+
+bootRetryBtn?.addEventListener("click", () => {
+  triggerBootRetry();
+});
+
 bootPoller.start();
 
 const pendingGate = mountPendingActionModal(document.querySelector("#mountPendingModal"), {
@@ -144,6 +181,34 @@ const pendingGate = mountPendingActionModal(document.querySelector("#mountPendin
     }
   }
 });
+
+createMissionStateStream({
+  pollMs: 3200,
+  onPayload: (body) => {
+    missionCopilotMeta = {
+      preview: body.mission?.inputPreview || "",
+      planStatus: body.mission?.planStatus || ""
+    };
+    const prevEffective = effectiveFsmState();
+    missionFsmState = body.derivedFsm || "STANDBY";
+    const nextEffective = effectiveFsmState();
+    if (
+      nextEffective === "WAITING_CONFIRMATION" &&
+      prevEffective !== "WAITING_CONFIRMATION" &&
+      bootFsmState === "STANDBY"
+    ) {
+      toastRegion.push("Mission plan awaits confirmation", "info");
+    }
+    paintFsmWidgets();
+  }
+}).start();
+
+uxRail = mountPremiumUxRail({
+  onboardingHost: document.querySelector("#mountFirstRunBanner"),
+  copilotHost: document.querySelector("#mountContextCopilot"),
+  onSpotlightTour: () => startSpotlightTour()
+});
+paintFsmWidgets();
 
 const operatorSettings = mountOperatorSettings(document.querySelector("#mountOperatorSettings"), {
   onSaved: () => {
@@ -178,7 +243,7 @@ const tileSchedCtl = mountStatusTile(tSched, {
 
 mountCaptainsLog(document.querySelector("#mountCaptainsLog"));
 
-mountApprovalQueue(document.querySelector("#mountApprovalQueue"), {
+approvalQueueCtl = mountApprovalQueue(document.querySelector("#mountApprovalQueue"), {
   pendingGate,
   toastRegion,
   onAction: (ev) => {
@@ -188,6 +253,7 @@ mountApprovalQueue(document.querySelector("#mountApprovalQueue"), {
     if (ev.type === "always") {
       // could persist preference in future
     }
+    unifiedInboxCtl?.refresh();
   }
 });
 
@@ -204,6 +270,52 @@ const auditCtl = createAuditFeed(document.querySelector("#mountAuditFeed"), {
 });
 auditCtl.start();
 
+unifiedInboxCtl = mountLiveUnifiedInbox(document.querySelector("#mountLiveUnifiedInbox"), {
+  fetchWhatsAppMessages: async () => {
+    const { messages } = await api("/api/whatsapp/messages");
+    return messages || [];
+  },
+  getApprovalItems: () => approvalQueueCtl?.getItems?.() || [],
+  fetchAuditEntries: async () => {
+    const { entries } = await api("/api/audit");
+    return entries || [];
+  },
+  fetchReminderJobs: async () => {
+    const { jobs } = await api("/api/scheduler/jobs");
+    return jobs || [];
+  },
+  fetchChannelFeeds: () => loadCollaborationChannelFeeds(),
+  onReadAloud: (item) => {
+    readInboxItemAloud(item);
+  },
+  onVoiceReply: (item) => {
+    startVoiceReplyForItem(item);
+  }
+});
+
+const graphRuntime = createGraphRuntime({
+  graphCountsEl: graphCounts,
+  graphFiltersEl: graphFilters,
+  graphSearchEl: graphSearch,
+  graphMatchCountEl: graphMatchCount,
+  graphSvgEl: graphSvg,
+  graphNodeDetailsEl: graphNodeDetails,
+  graphZoomOutBtn: document.querySelector("#graphZoomOutBtn"),
+  graphZoomInBtn: document.querySelector("#graphZoomInBtn"),
+  graphResetBtn: document.querySelector("#graphResetBtn"),
+  draftToInput: draftTo,
+  draftBodyInput: draftBody,
+  sendDraftIdInput: sendDraftId,
+  sendTokenInput: sendToken
+});
+
+let shellNavigation = null;
+let startSpotlightTour = () => {};
+
+function scrollToSection(id) {
+  shellNavigation?.scrollToSection(id);
+}
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     headers: { "content-type": "application/json" },
@@ -214,198 +326,128 @@ async function api(path, options = {}) {
   return body;
 }
 
+async function resolveScopedToken({ scope, targetId = "", inputEl }) {
+  return resolveScopedTokenService({
+    api,
+    scope,
+    targetId,
+    inputEl
+  });
+}
+
+async function triggerEmergencyStop(source = "ui_shortcut") {
+  return triggerEmergencyStopService({
+    api,
+    pendingGate,
+    approvalQueueCtl,
+    voiceOrbApi,
+    toastRegion,
+    source
+  });
+}
+
+async function clearEmergencyStop(source = "palette") {
+  return clearEmergencyStopService({
+    api,
+    toastRegion,
+    source
+  });
+}
+
 function showJson(element, value) {
   element.textContent = JSON.stringify(value, null, 2);
 }
 
-function createSvgElement(name, attributes = {}) {
-  const element = document.createElementNS("http://www.w3.org/2000/svg", name);
-  for (const [key, value] of Object.entries(attributes)) {
-    element.setAttribute(key, String(value));
+async function apiOptional(path) {
+  try {
+    return await api(path);
+  } catch {
+    return null;
   }
-  return element;
 }
 
-function renderGraphFilters() {
-  graphFilters.replaceChildren(
-    ...GRAPH_NODE_TYPES.map((type) => {
-      const label = document.createElement("label");
-      label.className = "graph-filter";
-
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = graphFiltersState[type] !== false;
-      input.addEventListener("change", () => {
-        graphFiltersState[type] = input.checked;
-        renderGraph();
-      });
-
-      const swatch = document.createElement("span");
-      swatch.className = "graph-swatch";
-      swatch.style.background = GRAPH_TYPE_META[type].color;
-
-      const text = document.createElement("span");
-      text.textContent = GRAPH_TYPE_META[type].label;
-
-      label.append(input, swatch, text);
-      return label;
-    })
-  );
+async function loadCollaborationChannelFeeds() {
+  return loadCollaborationFeeds({ apiOptional });
 }
 
-function renderGraphCounts(map) {
-  const summary = summarizeGraph(map);
-  graphCounts.replaceChildren(
-    ...Object.entries(summary).map(([key, value]) => {
-      const item = document.createElement("span");
-      item.textContent = `${key}: ${value}`;
-      return item;
-    })
-  );
+function getSelectedInboxItem() {
+  const selected = unifiedInboxCtl?.getSelectedItem?.();
+  if (selected) return selected;
+  return unifiedInboxCtl?.getItems?.()?.[0] || null;
 }
 
-function graphTransform() {
-  return `translate(${graphView.x} ${graphView.y}) scale(${graphView.scale})`;
+function readInboxItemAloud(item = getSelectedInboxItem()) {
+  if (!item) return false;
+  unifiedInboxCtl?.selectById?.(item.id);
+  const phrase = unifiedInboxCtl?.describeItem?.(item) || `${item.title}. ${item.preview}`;
+  const spoken = voiceOrbApi.speak(phrase);
+  if (!spoken) toastRegion.push("Speech synthesis unavailable", "error");
+  return spoken;
 }
 
-function updateGraphMatchCount() {
-  if (!currentGraphMap) {
-    graphMatchCount.textContent = "0 matches";
+function applyVoiceReplyDraft(item, transcript) {
+  const text = String(transcript || "").trim();
+  if (!text) {
+    toastRegion.push("No voice reply captured", "error");
     return;
   }
-
-  const visible = filterGraphBySearch(currentGraphMap, graphSearch.value, graphFiltersState);
-  const label = graphSearch.value.trim() ? "matches" : "visible";
-  graphMatchCount.textContent = `${visible.nodes.length} ${label}`;
+  if (item?.replyTo) draftTo.value = item.replyTo;
+  draftBody.value = text;
+  scrollToSection("section-ops");
+  draftBody.focus();
+  toastRegion.push("Voice reply drafted", "info");
 }
 
-function applyGraphNodeShortcut(node) {
-  const context = getGraphNodeContext(currentGraphMap, node);
-  graphRelatedIds = new Set(context.relatedIds);
-  selectedGraphNodeId = node.id;
+function startVoiceReplyForItem(item = getSelectedInboxItem()) {
+  if (!item) return false;
+  unifiedInboxCtl?.selectById?.(item.id);
+  if (item.replyTo) draftTo.value = item.replyTo;
 
-  if (context.action.type === "reply_draft") {
-    draftTo.value = context.action.details.to;
-    draftBody.value = "";
-    draftBody.focus();
-  }
-
-  if (context.action.type === "send_gate") {
-    sendDraftId.value = context.action.details.draftId;
-    sendToken.focus();
-  }
-
-  if (context.action.type === "scheduler_details" && context.action.details.relatedDraftId) {
-    sendDraftId.value = context.action.details.relatedDraftId;
-  }
-
-  graphNodeDetails.textContent = JSON.stringify(
-    {
-      action: context.action,
-      relatedIds: context.relatedIds,
-      node
-    },
-    null,
-    2
-  );
-}
-
-function renderGraph() {
-  graphSvg.replaceChildren();
-  if (!currentGraphMap) {
-    graphNodeDetails.textContent = "Export map to render graph.";
-    return;
-  }
-
-  const layout = layoutGraph(currentGraphMap, graphFiltersState, graphSearch.value);
-  updateGraphMatchCount();
-  const scene = createSvgElement("g", {
-    id: "graphScene",
-    transform: graphTransform()
+  const target = item.replyTo || item.channelLabel || "selected item";
+  const started = voiceOrbApi.startVoiceReply({
+    prompt: `Voice reply for ${target}. Dictate now.`,
+    onTranscript: (transcript) => applyVoiceReplyDraft(item, transcript)
   });
-  const edgeLayer = createSvgElement("g", { class: "graph-edge-layer" });
-  const nodeLayer = createSvgElement("g", { class: "graph-node-layer" });
+  if (!started) toastRegion.push("Speech recognition unavailable", "error");
+  return started;
+}
 
-  for (const edge of layout.edges) {
-    edgeLayer.append(
-      createSvgElement("line", {
-        class: "graph-edge",
-        x1: edge.fromNode.x,
-        y1: edge.fromNode.y,
-        x2: edge.toNode.x,
-        y2: edge.toNode.y
-      })
-    );
+async function handleVoiceShowMessages() {
+  await unifiedInboxCtl?.refresh();
+  unifiedInboxCtl?.focus();
+  return { spokenText: "Unified inbox refreshed." };
+}
 
-    const distance = Math.hypot(edge.toNode.x - edge.fromNode.x, edge.toNode.y - edge.fromNode.y);
-    if (distance > 130) {
-      const label = createSvgElement("text", {
-        class: "graph-edge-label",
-        x: (edge.fromNode.x + edge.toNode.x) / 2,
-        y: (edge.fromNode.y + edge.toNode.y) / 2 - 4
-      });
-      label.textContent = shortGraphLabel(edge.type, 22);
-      edgeLayer.append(label);
-    }
+async function handleVoiceApproveLast() {
+  if (!approvalQueueCtl?.approveLast) {
+    return { spokenText: "Approval queue unavailable." };
   }
 
-  for (const node of layout.nodes) {
-    const classNames = [
-      "graph-node",
-      `graph-node-${node.type}`,
-      graphSearch.value.trim() && node.matched ? "graph-node-match" : "",
-      graphRelatedIds.has(node.id) ? "graph-node-related" : "",
-      selectedGraphNodeId === node.id ? "graph-node-selected" : ""
-    ].filter(Boolean);
-    const group = createSvgElement("g", {
-      class: classNames.join(" "),
-      tabindex: "0",
-      role: "button"
-    });
-    const color = GRAPH_TYPE_META[node.type]?.color || "#e8eef8";
-
-    group.append(
-      createSvgElement("circle", {
-        cx: node.x,
-        cy: node.y,
-        r: node.type === "system" ? 34 : 25,
-        fill: color
-      })
-    );
-
-    const label = createSvgElement("text", {
-      class: "graph-node-label",
-      x: node.x,
-      y: node.y + 43
-    });
-    label.textContent = shortGraphLabel(node.label || node.id, 24);
-    group.append(label);
-
-    const status = createSvgElement("text", {
-      class: "graph-node-status",
-      x: node.x,
-      y: node.y + 57
-    });
-    status.textContent = shortGraphLabel(node.status || node.type, 20);
-    group.append(status);
-
-    const selectNode = () => {
-      applyGraphNodeShortcut(node);
-      renderGraph();
-    };
-    group.addEventListener("click", selectNode);
-    group.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectNode();
-      }
-    });
-
-    nodeLayer.append(group);
+  const result = await approvalQueueCtl.approveLast({ source: "voice" });
+  if (result?.ok) {
+    await unifiedInboxCtl?.refresh();
+    return { spokenText: `Approved ${result.action.title}` };
   }
 
-  scene.append(edgeLayer, nodeLayer);
-  graphSvg.append(scene);
+  if (result?.reason === "gate_required") {
+    approvalQueueCtl.focus?.();
+    return { spokenText: "High risk action needs manual confirmation." };
+  }
+
+  return { spokenText: "No pending approvals." };
+}
+
+function handleVoiceReadSelected() {
+  const item = getSelectedInboxItem();
+  if (!item) return { spokenText: "Unified inbox is empty." };
+  readInboxItemAloud(item);
+  return { statusText: `Reading ${item.channelLabel}` };
+}
+
+function handleVoiceReplySelected() {
+  const started = startVoiceReplyForItem();
+  if (!started) return { statusText: "Voice reply unavailable" };
+  return { statusText: "Voice reply armed" };
 }
 
 async function loadHealth() {
@@ -414,15 +456,18 @@ async function loadHealth() {
     lastHealth = health;
     const sendStatus = health.whatsapp.realSendEnabled ? "WhatsApp send enabled" : "WhatsApp send disabled";
     const bridgeText = health.whatsappBridge?.ok ? "bridge online" : "bridge offline";
-    statusLine.textContent = `${health.status}: ${health.tools.length} tools loaded. ${sendStatus}. ${bridgeText}.`;
+    const emergencyText = health.security?.emergency?.active ? "EMERGENCY STOP ACTIVE" : "emergency clear";
+    statusLine.textContent = `${health.status}: ${health.tools.length} tools loaded. ${sendStatus}. ${bridgeText}. ${emergencyText}.`;
     schedulerStatus.textContent = `Loop enabled=${health.scheduler.enabled} interval=${health.scheduler.intervalMs}ms autoSend=false`;
     bridgeStatus.textContent = `${health.whatsappBridge?.status || "UNKNOWN"} ${health.whatsappBridge?.url || ""}`;
     tileToolsCtl.update();
     tileBridgeCtl.update();
     tileSchedCtl.update();
+    paintFsmWidgets();
   } catch (e) {
     statusLine.textContent = `Operator unreachable · ${e.message}`;
     toastRegion.push(`Health check failed · ${e.message}`, "error");
+    paintFsmWidgets();
   }
 }
 
@@ -613,27 +658,6 @@ async function loadJobs() {
   }
 }
 
-function scrollToSection(id) {
-  const el = document.getElementById(id);
-  el?.scrollIntoView({ behavior: "smooth", block: "start" });
-  document.querySelectorAll(".nav-btn").forEach((b) => {
-    b.classList.toggle("is-active", b.dataset.target === id);
-  });
-}
-
-const shortcutsOverlay = document.querySelector("#shortcutsOverlay");
-document.querySelector("#shortcutsCloseBtn")?.addEventListener("click", () => {
-  shortcutsOverlay.hidden = true;
-});
-
-shortcutsOverlay?.addEventListener("click", (e) => {
-  if (e.target === shortcutsOverlay) shortcutsOverlay.hidden = true;
-});
-
-function navTargets() {
-  return ["section-mission", "section-ops", "section-bridge", "section-system", "section-graph"];
-}
-
 const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPalette"), {
   commands: [
     {
@@ -667,10 +691,34 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       run: () => scrollToSection("section-graph")
     },
     {
+      title: "Go · Unified inbox",
+      group: "Navigation",
+      keywords: "live inbox whatsapp approvals audit reminders obsidian ruflo hermes good mood",
+      run: () => unifiedInboxCtl?.focus()
+    },
+    {
       title: "Refresh health",
       group: "Actions",
       keywords: "status operator",
       run: () => loadHealth().then(() => toastRegion.push("Health refreshed", "info"))
+    },
+    {
+      title: "Retry · Boot FSM probe",
+      group: "Actions",
+      keywords: "boot breaker fsm retry supervisor",
+      run: () => triggerBootRetry()
+    },
+    {
+      title: "Emergency · Stop all actions",
+      group: "Safety",
+      keywords: "kill switch abort stop all cmd dot",
+      run: () => triggerEmergencyStop("palette").catch((error) => toastRegion.push(error.message, "error"))
+    },
+    {
+      title: "Emergency · Clear stop",
+      group: "Safety",
+      keywords: "resume clear unblock emergency",
+      run: () => clearEmergencyStop("palette").catch((error) => toastRegion.push(error.message, "error"))
     },
     {
       title: "Focus mission input",
@@ -697,6 +745,39 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       run: () => loadInbox().then(() => toastRegion.push("Inbox refreshed", "info"))
     },
     {
+      title: "Refresh · Unified inbox",
+      group: "Actions",
+      keywords: "live feed sync",
+      run: () => unifiedInboxCtl?.refresh().then(() => toastRegion.push("Unified inbox refreshed", "info"))
+    },
+    {
+      title: "Voice · Start listening",
+      group: "Voice",
+      keywords: "orb microphone command",
+      run: () => {
+        const started = voiceOrbApi.startListening();
+        if (!started) toastRegion.push("Speech recognition unavailable", "error");
+      }
+    },
+    {
+      title: "Voice · Read selected inbox item",
+      group: "Voice",
+      keywords: "read aloud speak selected",
+      run: () => {
+        const ok = readInboxItemAloud();
+        if (!ok) toastRegion.push("No item available for read aloud", "error");
+      }
+    },
+    {
+      title: "Voice · Reply to selected item",
+      group: "Voice",
+      keywords: "dictate voice reply",
+      run: () => {
+        const started = startVoiceReplyForItem();
+        if (!started) toastRegion.push("Voice reply unavailable", "error");
+      }
+    },
+    {
       title: "Open · Operator settings",
       group: "System",
       keywords: "boot fsm urls config localStorage settings preferences",
@@ -712,6 +793,12 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       }
     },
     {
+      title: "Help · Spotlight workspace tour",
+      group: "Help",
+      keywords: "onboarding guide tour spotlight intro walkthrough",
+      run: () => startSpotlightTour()
+    },
+    {
       title: "Focus · Approval queue",
       group: "Actions",
       keywords: "approve queue pending actions jarvis autonomous",
@@ -725,46 +812,23 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
   onClose: () => {}
 });
 
-document.querySelectorAll(".nav-btn").forEach((btn) => {
-  btn.addEventListener("click", () => scrollToSection(btn.dataset.target));
+shellNavigation = createShellNavigation({
+  navButtons: [...document.querySelectorAll(".nav-btn")],
+  shortcutsOverlay: document.querySelector("#shortcutsOverlay"),
+  shortcutsCloseBtn: document.querySelector("#shortcutsCloseBtn"),
+  paletteCtl,
+  operatorSettings,
+  pendingGate,
+  onEmergencyStop: (source) => triggerEmergencyStop(source),
+  onError: (error) => {
+    toastRegion.push(error?.message || String(error), "error");
+  }
 });
 
-document.addEventListener("keydown", (e) => {
-  const meta = e.metaKey || e.ctrlKey;
-  if (meta && e.key.toLowerCase() === "k") {
-    e.preventDefault();
-    paletteCtl.open();
-  }
-  if (meta && e.key === ",") {
-    e.preventDefault();
-    operatorSettings.open();
-  }
-  if (meta && e.key >= "1" && e.key <= "5") {
-    e.preventDefault();
-    const idx = Number(e.key) - 1;
-    const id = navTargets()[idx];
-    if (id) scrollToSection(id);
-  }
-  if (!meta && e.key === "?") {
-    e.preventDefault();
-    shortcutsOverlay.hidden = !shortcutsOverlay.hidden;
-  }
-  if (e.key === "Escape" && !shortcutsOverlay.hidden) {
-    shortcutsOverlay.hidden = true;
-  }
-  if ((meta || e.ctrlKey) && e.key === "Enter") {
-    const dlg = pendingGate.element;
-    if (dlg?.open) {
-      e.preventDefault();
-      const phrase = document.querySelector("#pendingPhraseInput");
-      if (phrase && phrase.value.trim().toUpperCase() === "CONFIRM") {
-        document.querySelector("#pendingStep2Btn")?.click();
-      } else {
-        document.querySelector("#pendingStep1Btn")?.click();
-      }
-    }
-  }
+const interactiveGuideCtl = mountInteractiveGuide(document, {
+  shellNavigate: (id) => scrollToSection(id)
 });
+startSpotlightTour = () => interactiveGuideCtl.startTour();
 
 missionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -826,9 +890,14 @@ document.querySelector("#bridgeCreateDraftBtn").addEventListener("click", async 
 sendForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   try {
+    const confirmToken = await resolveScopedToken({
+      scope: "whatsapp.send",
+      targetId: sendDraftId.value,
+      inputEl: sendToken
+    });
     const result = await api(`/api/whatsapp/drafts/${sendDraftId.value}/send`, {
       method: "POST",
-      body: JSON.stringify({ confirmToken: sendToken.value })
+      body: JSON.stringify({ confirmToken })
     });
     showJson(sendOutput, result);
     await loadDrafts();
@@ -841,9 +910,14 @@ sendForm.addEventListener("submit", async (event) => {
 
 document.querySelector("#bridgeSendBtn").addEventListener("click", async () => {
   try {
+    const confirmToken = await resolveScopedToken({
+      scope: "whatsapp.bridge.send",
+      targetId: sendDraftId.value,
+      inputEl: bridgeToken
+    });
     const result = await api(`/api/bridge/whatsapp/drafts/${sendDraftId.value}/confirm`, {
       method: "POST",
-      body: JSON.stringify({ confirmToken: bridgeToken.value })
+      body: JSON.stringify({ confirmToken })
     });
     showJson(bridgeOutput, result);
     await loadBridgeDrafts();
@@ -897,9 +971,14 @@ document.querySelector("#exportStateBtn").addEventListener("click", async () => 
 });
 document.querySelector("#obsidianSyncBtn").addEventListener("click", async () => {
   try {
+    const confirmToken = await resolveScopedToken({
+      scope: "obsidian.sync",
+      targetId: "",
+      inputEl: obsidianToken
+    });
     const result = await api("/api/obsidian/sync-summary", {
       method: "POST",
-      body: JSON.stringify({ confirmToken: obsidianToken.value })
+      body: JSON.stringify({ confirmToken })
     });
     showJson(obsidianOutput, result);
     await auditCtl.refresh();
@@ -911,10 +990,7 @@ document.querySelector("#obsidianSyncBtn").addEventListener("click", async () =>
 document.querySelector("#graphifyExportBtn").addEventListener("click", async () => {
   try {
     const result = await api("/api/graphify/export", { method: "POST" });
-    currentGraphMap = result.map;
-    renderGraphCounts(currentGraphMap);
-    renderGraphFilters();
-    renderGraph();
+    graphRuntime.setMap(result.map);
     showJson(graphifyOutput, {
       exportPath: result.exportPath,
       counts: result.map.counts,
@@ -926,57 +1002,14 @@ document.querySelector("#graphifyExportBtn").addEventListener("click", async () 
     toastRegion.push(err.message, "error");
   }
 });
-graphSearch.addEventListener("input", renderGraph);
-document.querySelector("#graphZoomOutBtn").addEventListener("click", () => {
-  graphView.scale = nextZoom(graphView.scale, -1);
-  renderGraph();
-});
-document.querySelector("#graphZoomInBtn").addEventListener("click", () => {
-  graphView.scale = nextZoom(graphView.scale, 1);
-  renderGraph();
-});
-document.querySelector("#graphResetBtn").addEventListener("click", () => {
-  graphView = { x: 0, y: 0, scale: GRAPH_ZOOM.initial };
-  renderGraph();
-});
-graphSvg.addEventListener("wheel", (event) => {
-  if (!currentGraphMap) return;
-  event.preventDefault();
-  graphView.scale = nextZoom(graphView.scale, event.deltaY > 0 ? -1 : 1);
-  renderGraph();
-});
-graphSvg.addEventListener("pointerdown", (event) => {
-  if (!currentGraphMap) return;
-  graphDrag = {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    viewX: graphView.x,
-    viewY: graphView.y
-  };
-  graphSvg.setPointerCapture(event.pointerId);
-});
-graphSvg.addEventListener("pointermove", (event) => {
-  if (!graphDrag || graphDrag.pointerId !== event.pointerId) return;
-  graphView.x = graphDrag.viewX + event.clientX - graphDrag.startX;
-  graphView.y = graphDrag.viewY + event.clientY - graphDrag.startY;
-  const scene = document.querySelector("#graphScene");
-  scene?.setAttribute("transform", graphTransform());
-});
-graphSvg.addEventListener("pointerup", (event) => {
-  if (graphDrag?.pointerId === event.pointerId) graphDrag = null;
-});
-graphSvg.addEventListener("pointercancel", () => {
-  graphDrag = null;
-});
 
 /** Predictive focus */
 function predictiveFocus() {
-  if (liveFsmState === "WAITING_CONFIRMATION" && pendingGate.element?.open) {
+  if (effectiveFsmState() === "WAITING_CONFIRMATION" && pendingGate.element?.open) {
     document.querySelector("#pendingPhraseInput")?.focus();
     return;
   }
-  if (liveFsmState === "STANDBY") {
+  if (effectiveFsmState() === "STANDBY") {
     missionInput?.focus();
   }
 }
@@ -986,5 +1019,6 @@ await loadInbox();
 await loadDrafts();
 await loadJobs();
 await auditCtl.refresh();
+await unifiedInboxCtl?.refresh();
 
 predictiveFocus();

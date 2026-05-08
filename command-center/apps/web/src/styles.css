@@ -1552,6 +1552,15 @@ kbd {
   color: var(--text-muted);
 }
 
+.first-run-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .kbd-chip {
   display: inline-block;
   padding: 1px 6px;
@@ -1599,7 +1608,85 @@ kbd {
     align-items: stretch;
   }
 
+  .first-run-banner-actions {
+    justify-content: flex-start;
+  }
+
   .ux-premium-rail {
     padding: 0 12px 8px;
+  }
+}
+
+/* Interactive spotlight tour */
+.interactive-guide-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10040;
+}
+
+.interactive-guide-root[hidden] {
+  display: none !important;
+}
+
+.interactive-guide-scrim {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.interactive-guide-hole {
+  position: fixed;
+  border-radius: 14px;
+  pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(3, 6, 13, 0.82);
+  border: 2px solid rgba(75, 224, 255, 0.48);
+  z-index: 10041;
+  transition: top 0.18s ease, left 0.18s ease, width 0.18s ease, height 0.18s ease;
+}
+
+.interactive-guide-card.glass-modal {
+  position: fixed;
+  z-index: 10042;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 14px 16px;
+}
+
+.interactive-guide-progress {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.interactive-guide-title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+}
+
+.interactive-guide-body {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.interactive-guide-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.interactive-guide-next {
+  border-color: rgba(75, 224, 255, 0.42);
+  background: rgba(75, 224, 255, 0.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-guide-hole {
+    transition: none;
   }
 }
