@@ -930,6 +930,36 @@ textarea {
   cursor: not-allowed;
 }
 
+.captains-log-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.captains-log-search-label {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+.captains-log-search {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-raised, rgba(0, 0, 0, 0.25));
+  color: inherit;
+}
+
+.captains-log-search-meta {
+  font-size: 11px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
 .captains-log-body {
   margin: 0;
   white-space: pre-wrap;

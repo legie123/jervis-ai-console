@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  filterCaptainsLogBody,
   isoDateString,
   loadCaptainsLogForDate,
   shiftIsoDate
@@ -41,6 +42,27 @@ test("loadCaptainsLogForDate returns empty on 404", async () => {
   const result = await loadCaptainsLogForDate("2999-01-01", fakeFetch);
   assert.equal(result.ok, false);
   assert.equal(result.text, "");
+});
+
+test("filterCaptainsLogBody returns full text when query empty", () => {
+  const raw = "Alpha\nBeta\nGamma";
+  const out = filterCaptainsLogBody(raw, "  ");
+  assert.equal(out.queryActive, false);
+  assert.equal(out.body, raw);
+  assert.equal(out.shownLines, 3);
+});
+
+test("filterCaptainsLogBody filters lines case-insensitively", () => {
+  const out = filterCaptainsLogBody("One\nTWO\nthree", "two");
+  assert.equal(out.queryActive, true);
+  assert.equal(out.shownLines, 1);
+  assert.equal(out.body, "TWO");
+});
+
+test("filterCaptainsLogBody shows hint when no matches", () => {
+  const out = filterCaptainsLogBody("a\nb", "zzz");
+  assert.equal(out.shownLines, 0);
+  assert.match(out.body, /No lines match/);
 });
 
 test("loadCaptainsLogForDate swallows network errors", async () => {

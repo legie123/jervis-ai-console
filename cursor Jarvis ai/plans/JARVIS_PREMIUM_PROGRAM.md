@@ -36,7 +36,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 
 ### Faza 5 — Observabilitate & siguranță
 
-- Captain’s Log search UI; audit export; Shields/aidefence feedback vizibil în Command Center (fără a expune PII).
+- Captain’s Log search UI (substring pe linii, debounce scurt); audit export; Shields/aidefence feedback vizibil în Command Center (fără a expune PII).
 - **Gate:** checklist securitate Claude pe R-15..R-17.
 
 ### Faza 6 — Voice & automation (P3)
@@ -62,6 +62,24 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 1. Faza 2: `resolveBootFsmUrls()` + documentare în `index.html`.
 2. După commit: smoke `npm --prefix command-center test`.
 3. Handoff scurt în `BRAIN/HANDOFF_CURRENT.md` (append).
+
+---
+
+## Execuție către 100% (definiție + status)
+
+**„100% complet”** înseamnă aici: **toate gate-urile de mai sus sunt bifate**, metricile din tabel sunt atinse, și nu există blockere nedocumentate. Nu este un singur commit; este închidere secvențială pe faze (0→6) cu owneri diferiți (Hermes task split, Codex build, Claude review siguranță, Cursor UI, Antigravity vizual).
+
+| Fază | Gate principal | Stare estimată (2026-05-10) | Ce lipsește pentru 100% |
+|------|----------------|-----------------------------|-------------------------|
+| **0** | P0 din `NEXT_ACTIONS` + handoff-uri | ~45% | Hermes/Codex închid T-009..T015, QA vizual, risk register la zi |
+| **1** | T-004 done + Lighthouse a11y ≥ 90 la regresii | ~70% | Semnare task Hermes; pipeline Lighthouse (CI sau manual periodic) |
+| **2** | Host/port într-un singur loc fără recompilare | ~75% | `resolveBootFsmUrls` + inject HTML există în Command Center; polish + doc operator env dacă lipsește |
+| **3** | React + paritate cu vanilla | ~5% | Migrare mare (săptămâni); Codex/Cursor plan incremental + Storybook opțional |
+| **4** | Un truth `jervis-ai-console` + BRAIN canonical | ~15% | Decizie org + merge/submodule TRADE AI ↔ Jarvis AI (în afara unui singur agent) |
+| **5** | Captain search + audit vizibil + Shields fără PII | ~50% | Căutare în log (substring, Command Center); Shields/aidefence endpoint sau embed sigur; audit export; checklist R-15..R17 Claude |
+| **6** | Voice + LaunchAgent + scheduler verificate | ~20% | Wake word, legare supervisor, teste dispozitiv; `jervis-*.mjs` = owner Claude |
+
+**Țintă realistă:** 100% pe **Faze 0–2 + porțiuni 5** poate fi atinsă în **câteva iterății** cu backlog prioritar; **Faza 3–4 + 6 complet** depinde de decizii de produs și timp de echipă.
 
 ---
 
