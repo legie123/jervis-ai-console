@@ -13,7 +13,7 @@ What the last agent left for the next.
 
 **DONE:** `MANDATORY_ADAPTER_KEYS` = **`ruflo` + `hermes`** în `collaboration-feeds.js`; test + copilot + first-run + LOCAL_SETUP + `.env.example`. **UIX:** `--layout-max: 1440px`, `.app-shell` și `.glass-bar` pe token-uri (`--radius-lg`, `--space-5`).
 
-**NEXT:** PR **`cursor/hermes-mandatory-feed`** → merge `main`. Voice / Figma.
+**NEXT:** (PR **#6** merged în `main` `83c2d5e`.) Voice / Figma; eventual GoodMood la fel ca mandatory dacă product cere.
 
 ---
 
