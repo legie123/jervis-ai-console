@@ -28,3 +28,5 @@ jobs:
         run: npm run build
       - name: Test
         run: npm test
+      - name: Lighthouse (accessibility ≥ 90)
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=./lighthouserc.json

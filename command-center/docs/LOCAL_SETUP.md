@@ -38,6 +38,18 @@ npm test
 node apps/operator/src/healthcheck.js
 ```
 
+## Lighthouse (accessibility gate, Faza 1)
+
+CI rulează **@lhci/cli** pe build-ul static după `npm test` (vezi `lighthouserc.json` în `command-center/`). Local, după build:
+
+```bash
+cd command-center
+npm run build
+npx --yes @lhci/cli@0.14.0 autorun --config=./lighthouserc.json
+```
+
+Eșuează dacă scorul categoriei **accessibility** scade sub **0.9** (90).
+
 ## Local UI — one URL (recommended)
 
 **Canonical dev URL (UI always up to date, HMR):** **`http://127.0.0.1:5173`**

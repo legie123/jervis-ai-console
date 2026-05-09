@@ -17,7 +17,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 ### Faza 1 — Elite UI v0 semnat (T-004)
 
 - Livrabil deja în `command-center/apps/web/` (vezi `cursor Jarvis ai/handoff/T-2026-05-07-004.md`).
-- **Gate:** Hermes marchează `BRAIN/tasks/T-2026-05-07-004.md` done; Lighthouse a11y ≥ 90 păstrat la regresii.
+- **Gate:** Hermes marchează `BRAIN/tasks/T-2026-05-07-004.md` done; Lighthouse a11y ≥ 90 păstrat la regresii (**CI:** `command-center/lighthouserc.json` + pas „Lighthouse” în `.github/workflows/command-center.yml` după `npm test`).
 
 ### Faza 2 — Config & portability premium
 
@@ -72,7 +72,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 | Fază | Gate principal | Stare estimată (2026-05-10) | Ce lipsește pentru 100% |
 |------|----------------|-----------------------------|-------------------------|
 | **0** | P0 din `NEXT_ACTIONS` + handoff-uri | ~45% | Hermes/Codex închid T-009..T015, QA vizual, risk register la zi |
-| **1** | T-004 done + Lighthouse a11y ≥ 90 la regresii | ~70% | Semnare task Hermes; pipeline Lighthouse (CI sau manual periodic) |
+| **1** | T-004 done + Lighthouse a11y ≥ 90 la regresii | ~85% | Semnare task Hermes (T-004); Lighthouse în CI pe build static `apps/web/dist` |
 | **2** | Host/port într-un singur loc fără recompilare | ~75% | `resolveBootFsmUrls` + inject HTML există în Command Center; polish + doc operator env dacă lipsește |
 | **3** | React + paritate cu vanilla | ~5% | Migrare mare (săptămâni); Codex/Cursor plan incremental + Storybook opțional |
 | **4** | Un truth `jervis-ai-console` + BRAIN canonical | ~15% | Decizie org + merge/submodule TRADE AI ↔ Jarvis AI (în afara unui singur agent) |

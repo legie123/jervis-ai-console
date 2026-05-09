@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T22:30:00Z
+last_session_end: 2026-05-09T23:15:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Faza 1: Lighthouse a11y în CI
+
+**DONE:** `command-center/lighthouserc.json` (doar categorie accessibility, `minScore` 0.9). `.github/workflows/command-center.yml`: pas **Lighthouse** după teste (`npx @lhci/cli@0.14.0 autorun`). `LOCAL_SETUP.md` + `JARVIS_PREMIUM_PROGRAM.md` (gate Faza 1, tabel ~85%). Verificat local: build + lhci **pass**.
+
+**NEXT:** Merge PR #8 (sau rebase branch pe `main` după merge); Hermes marchează T-004 done când e semnat.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — Premium plan „100%” + Captain’s Log search
 
