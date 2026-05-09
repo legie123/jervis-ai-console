@@ -20,6 +20,7 @@ const required = [
   "apps/web/src/services/shell-navigation.js",
   "apps/web/src/services/mission-state-stream.js",
   "apps/web/src/services/copilot-hints.js",
+  "apps/web/src/services/api-base.js",
   "apps/operator",
   "apps/operator/src/http.js",
   "apps/operator/src/intent-router.js",

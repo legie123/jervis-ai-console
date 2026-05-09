@@ -26,6 +26,7 @@ import {
 } from "./services/security-ops.js";
 import { createShellNavigation } from "./services/shell-navigation.js";
 import { createMissionStateStream, mergeBootAndMissionFsm } from "./services/mission-state-stream.js";
+import { resolveApiUrl } from "./services/api-base.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -321,7 +322,7 @@ function scrollToSection(id) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(resolveApiUrl(path), {
     headers: { "content-type": "application/json" },
     ...options
   });

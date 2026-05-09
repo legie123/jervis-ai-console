@@ -2,6 +2,8 @@
 
 Status: PHASE 0 DOCS ONLY.
 
+**Hosting cloud (Cloud.ru etc.):** vezi [DEPLOY_CLOUD_RU.md](./DEPLOY_CLOUD_RU.md).
+
 ## Folder
 
 `/Users/user/projects/JARVIS_COMMAND_CENTER`
