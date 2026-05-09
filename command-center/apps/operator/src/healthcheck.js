@@ -58,6 +58,7 @@ const required = [
   "config/tools.registry.json",
   "config/permissions.json",
   "scripts/healthcheck.sh",
+  "scripts/dev-local.sh",
   "scripts/start-local.sh",
   "scripts/run-scheduler.sh",
   "scripts/backup-local.sh",

@@ -20,6 +20,8 @@ Then open:
 
 `http://127.0.0.1:4317`
 
+For the **recommended single dev URL** with hot reload, see [Local UI — one URL (recommended)](#local-ui--one-url-recommended) below.
+
 ## Test
 
 From repo root, if scripts expect that layout:
@@ -36,30 +38,37 @@ npm test
 node apps/operator/src/healthcheck.js
 ```
 
-## Production-style web UI (Vite)
+## Local UI — one URL (recommended)
 
-From `command-center/`:
+**Canonical dev URL (UI always up to date, HMR):** **`http://127.0.0.1:5173`**
+
+From `command-center/` run **one** command — it starts the operator (API on **4317**) and Vite (UI on **5173**). Vite proxies `/api` and `/webhooks` to the operator, so the browser only talks to **5173**.
+
+```bash
+cd command-center
+npm install
+npm run dev:local
+```
+
+Then open **`http://127.0.0.1:5173/`**. Keep the terminal open.
+
+- If you see **`ERR_CONNECTION_REFUSED` on 5173**, the dev server is not running — use `npm run dev:local` (or start the operator separately, then `npm run dev:web`; see env below).
+- Advanced: set **`JARVIS_OPERATOR_ORIGIN`** (default `http://127.0.0.1:4317`) if the API listens elsewhere; set **`VITE_DEV_PORT`** to change the UI port.
+
+### Operator only (no Vite, single process)
+
+```bash
+npm run start:web
+```
+
+Open **`http://127.0.0.1:4317`** (or `PORT`). When `apps/web/dist/index.html` exists, the operator serves the built bundle; otherwise it serves `apps/web/src/`.
+
+### Production-style bundle
 
 ```bash
 npm run build
 npm run start:web
 ```
-
-Open `http://127.0.0.1:4317` (or `PORT` if set). When `apps/web/dist/index.html` exists, the operator serves the bundled UI; otherwise it serves `apps/web/src/` for quick iteration without a build step.
-
-Hot reload while editing the web app:
-
-```bash
-npm run dev:web
-```
-
-Then open **`http://127.0.0.1:4318`** (Vite is configured with `server.port: 4318` in `apps/web/vite.config.js`, **not** the default `5173`).
-
-### If the browser shows `ERR_CONNECTION_REFUSED` on `localhost:5173`
-
-- **5173** is the usual Vite default in other projects; **this Command Center** uses **4318** for `npm run dev:web`.
-- Either open **http://127.0.0.1:4318** after starting `npm run dev:web`, or use the operator on **http://127.0.0.1:4317** with `npm run start:web` (build optional; see above).
-- `ERR_CONNECTION_REFUSED` means no dev server is running: start `npm run dev:web` from `command-center/` in a terminal and keep it open.
 
 ## Adapter feeds — Obsidian, Ruflo, GoodMood (required for full operator picture)
 

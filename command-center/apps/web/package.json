@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node postbuild-copy.mjs",
-    "preview": "vite preview --port 4318"
+    "preview": "vite preview --port 4173"
   },
   "devDependencies": {
     "vite": "^6.2.0"

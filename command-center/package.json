@@ -10,6 +10,7 @@
   "scripts": {
     "build": "npm run build -w @jarvis/web",
     "dev:web": "npm run dev -w @jarvis/web",
+    "dev:local": "sh scripts/dev-local.sh",
     "healthcheck": "node apps/operator/src/healthcheck.js",
     "start:operator": "node apps/operator/src/index.js",
     "start:web": "node apps/operator/src/server.js",
