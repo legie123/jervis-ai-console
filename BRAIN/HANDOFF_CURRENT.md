@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T23:45:00Z
-next_recommended_agent: hermes
+last_session_end: 2026-05-10T01:00:00Z
+next_recommended_agent: codex
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-10, [cursor]) — Faza 2 docs + plan sync
+
+**DONE:** `index.html` (root + `src/`): comentariu unic inject **`__JARVIS_BOOT_FSM_URLS__`** + pointer **`VITE_OPERATOR_API_ORIGIN`** / **`JARVIS_CORS_ALLOW_ORIGIN`** → `DEPLOY_CLOUD_RU.md`. `JARVIS_PREMIUM_PROGRAM.md`: Faza 2 gate actualizat, tabel Faza **2 ~82%**, Faza **5 ~62%**, „Next actions” → merge PR #8 apoi T-005 React.
+
+**NEXT:** Merge **PR #8** (sau review Andrei/Claude); Codex: incremental React T-005.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — Faza 5: Shields strip în Command Center
 
