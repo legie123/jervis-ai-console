@@ -25,7 +25,7 @@ test("copilot hints show confirmation guidance", () => {
 test("copilot hints default shortcut tip", () => {
   const text = resolveCopilotHint({ effectiveFsm: "STANDBY", bootOffline: false });
   assert.match(text, /⌘K/);
-  assert.match(text, /Ruflo \+ Hermes feeds/i);
+  assert.match(text, /Ruflo \+ Hermes \+ GoodMood feeds/i);
 });
 
 test("copilot hints append workspace nudge on standby", () => {
