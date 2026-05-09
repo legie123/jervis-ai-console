@@ -24,7 +24,7 @@ function normalizeSpeech(value) {
   return String(value || "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -33,6 +33,15 @@ function normalizeSpeech(value) {
 function hasWakePhrase(value) {
   const clean = normalizeSpeech(value);
   return JERVIS_WAKE_PHRASES.some((phrase) => clean.includes(phrase));
+}
+
+function safeCallback(callback, payload) {
+  if (typeof callback !== "function") return;
+  try {
+    callback(payload);
+  } catch (error) {
+    console.warn("JERVIS voice callback failed", error);
+  }
 }
 
 function pickVoice() {
@@ -53,12 +62,14 @@ export function createJervisVoiceController(callbacks = {}) {
   let active = false;
   let restarting = false;
   let lastFinalText = "";
+  let recognitionStarted = false;
 
-  const emitState = (state) => callbacks.onState?.(state);
-  const emitError = (message) => callbacks.onError?.(message);
+  const emitState = (state) => safeCallback(callbacks.onState, state);
+  const emitError = (message) => safeCallback(callbacks.onError, message);
 
   const stopRecognition = () => {
     restarting = false;
+    recognitionStarted = false;
     try {
       recognition?.stop();
     } catch {
@@ -67,11 +78,18 @@ export function createJervisVoiceController(callbacks = {}) {
   };
 
   const startRecognition = () => {
-    if (!recognition || !active) return;
+    if (!recognition || !active || recognitionStarted) return;
     try {
       recognition.start();
-    } catch {
-      // Browsers throw if recognition is already active. Ignore.
+      recognitionStarted = true;
+    } catch (error) {
+      const isAlreadyStarted =
+        typeof DOMException !== "undefined" &&
+        error instanceof DOMException &&
+        error.name === "InvalidStateError";
+      if (!isAlreadyStarted) {
+        emitError("Voice recognition could not start. Manual command mode remains available.");
+      }
     }
   };
 
@@ -92,7 +110,7 @@ export function createJervisVoiceController(callbacks = {}) {
 
       const visible = (finalText || interim).trim();
       if (visible) {
-        callbacks.onTranscript?.({
+        safeCallback(callbacks.onTranscript, {
           phase: mode,
           transcript: visible,
           final: Boolean(finalText)
@@ -107,27 +125,33 @@ export function createJervisVoiceController(callbacks = {}) {
         if (!hasWakePhrase(cleanFinal)) return;
         mode = "command";
         emitState("listening");
-        callbacks.onWake?.(cleanFinal);
+        safeCallback(callbacks.onWake, cleanFinal);
         return;
       }
 
       if (mode === "command") {
         mode = "busy";
         emitState("thinking");
-        callbacks.onFinalCommand?.(cleanFinal);
+        safeCallback(callbacks.onFinalCommand, cleanFinal);
       }
     };
 
     recognition.onerror = (event) => {
       if (event.error === "no-speech" || event.error === "aborted") return;
+      active = false;
+      restarting = false;
+      recognitionStarted = false;
       const message = event.error === "not-allowed"
         ? "Microphone permission denied. Manual command mode remains available."
+        : event.error === "service-not-allowed"
+          ? "Voice recognition service is blocked. Manual command mode remains available."
         : `Voice recognition failed: ${event.error || "unknown error"}`;
       emitState("unavailable");
       emitError(message);
     };
 
     recognition.onend = () => {
+      recognitionStarted = false;
       if (!active || !restarting) return;
       window.setTimeout(startRecognition, 220);
     };
@@ -176,7 +200,7 @@ export function createJervisVoiceController(callbacks = {}) {
 
       this.pauseRecognition();
       emitState(options.state || "speaking");
-      callbacks.onResponse?.(clean);
+      safeCallback(callbacks.onResponse, clean);
       window.speechSynthesis.cancel();
 
       await new Promise((resolve) => {

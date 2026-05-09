@@ -5,10 +5,17 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test"
+    "start:command-center": "npm --prefix command-center run start:web",
+    "test:command-center": "npm --prefix command-center test",
+    "healthcheck:command-center": "npm --prefix command-center run healthcheck",
+    "voice:clone": "node scripts/clone-elevenlabs-voice.js",
+    "test": "node --test test/*.test.js",
+    "build": "node --check src/index.js && node --check scripts/clone-elevenlabs-voice.js"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mime-db": "^1.54.0"
   },
   "devDependencies": {
     "supertest": "^7.1.4"

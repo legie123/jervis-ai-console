@@ -1,4 +1,17 @@
+.DS_Store
 node_modules/
 .env
 data/
+data/exports/
+data/audit.jsonl
+.antigravity/
+command-center/.antigravity/
+command-center/data/
+claude Jarvis ai/
+samples/*.wav
+samples/*.mp3
+samples/*.m4a
+*.tmp
+CLAUDE/logs/
+CLAUDE/drafts/
 npm-debug.log*

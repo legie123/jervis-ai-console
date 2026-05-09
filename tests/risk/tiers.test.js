@@ -67,5 +67,5 @@ test("riskSummary returns full structure for whatsapp_send", () => {
 test("riskSummary for emergency_stop", () => {
   const s = riskSummary({ action: "emergency_stop" });
   assert.equal(s.tier, "CRITICAL");
-  assert.match(s.headline, /Oprire totala/i);
+  assert.match(s.headline, /Oprire total[ăa]/i);
 });

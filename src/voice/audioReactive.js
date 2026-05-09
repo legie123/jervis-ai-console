@@ -4,11 +4,29 @@ export function createAudioReactiveMeter(callbacks = {}) {
   let analyser = null;
   let frameId = 0;
   let data = null;
+  let startToken = 0;
+
+  const emitLevel = (level) => {
+    try {
+      callbacks.onLevel?.(level);
+    } catch (error) {
+      console.warn("JERVIS audio level callback failed", error);
+    }
+  };
+
+  const emitError = (message) => {
+    try {
+      callbacks.onError?.(message);
+    } catch (error) {
+      console.warn("JERVIS audio error callback failed", error);
+    }
+  };
 
   const stop = () => {
+    startToken += 1;
     if (frameId) cancelAnimationFrame(frameId);
     frameId = 0;
-    callbacks.onLevel?.(0);
+    emitLevel(0);
     stream?.getTracks().forEach((track) => track.stop());
     stream = null;
     if (audioContext && audioContext.state !== "closed") {
@@ -28,29 +46,40 @@ export function createAudioReactiveMeter(callbacks = {}) {
       sum += centered * centered;
     }
     const rms = Math.sqrt(sum / data.length);
-    callbacks.onLevel?.(Math.min(1, rms * 4.2));
+    emitLevel(Math.min(1, rms * 4.2));
     frameId = requestAnimationFrame(tick);
   };
 
   return {
     async start() {
-      if (!navigator.mediaDevices?.getUserMedia) {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
         const message = "Microphone API unavailable. Manual command mode remains available.";
-        callbacks.onError?.(message);
+        emitError(message);
         return { ok: false, error: message };
       }
 
       stop();
+      const token = startToken;
 
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
+        const nextStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true
           }
         });
-        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+        if (token !== startToken) {
+          nextStream.getTracks().forEach((track) => track.stop());
+          return { ok: false, error: "Microphone startup cancelled. Manual command mode remains available." };
+        }
+        stream = nextStream;
+        const AudioContextCtor = typeof window !== "undefined"
+          ? window.AudioContext || window.webkitAudioContext
+          : null;
+        if (!AudioContextCtor) {
+          throw new Error("Web Audio API unavailable. Manual command mode remains available.");
+        }
         audioContext = new AudioContextCtor();
         const source = audioContext.createMediaStreamSource(stream);
         analyser = audioContext.createAnalyser();
@@ -63,9 +92,13 @@ export function createAudioReactiveMeter(callbacks = {}) {
       } catch (error) {
         stop();
         const message = error instanceof Error
-          ? error.message
+          ? error.name === "NotAllowedError"
+            ? "Microphone permission denied. Manual command mode remains available."
+            : error.name === "NotFoundError"
+              ? "No microphone found. Manual command mode remains available."
+              : error.message
           : "Microphone permission failed. Manual command mode remains available.";
-        callbacks.onError?.(message);
+        emitError(message);
         return { ok: false, error: message };
       }
     },
