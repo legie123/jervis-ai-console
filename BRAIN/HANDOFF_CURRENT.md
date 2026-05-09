@@ -1,13 +1,21 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T23:15:00Z
+last_session_end: 2026-05-09T23:45:00Z
 next_recommended_agent: hermes
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
+
+## Last session summary (2026-05-09, [cursor]) — Faza 5: Shields strip în Command Center
+
+**DONE:** `shields-strip.js` — rezumat din `/api/health` (path guard counts, scoped tokens pending, emergency) **fără** afișare root/căi. Mount în `index.html`, `app.js` refresh la health; CSS; `shields-strip.test.js`; `healthcheck.js`; `.gitignore` `.lighthouseci/`. Build + LHCI + **99** teste verzi.
+
+**NEXT:** Merge PR #8; eventual GET `/api/security/shields` redus dacă vrei health mai slim în browser.
+
+---
 
 ## Last session summary (2026-05-09, [cursor]) — Faza 1: Lighthouse a11y în CI
 

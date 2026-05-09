@@ -13,6 +13,7 @@ const required = [
   "apps/web/src/styles.css",
   "apps/web/src/app.js",
   "apps/web/src/components/premium-ux-rail.js",
+  "apps/web/src/components/shields-strip.js",
   "apps/web/src/services/collaboration-feeds.js",
   "apps/web/src/services/graph-runtime.js",
   "apps/web/src/services/security-ops.js",

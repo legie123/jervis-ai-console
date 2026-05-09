@@ -36,7 +36,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 
 ### Faza 5 — Observabilitate & siguranță
 
-- Captain’s Log search UI (substring pe linii, debounce scurt); audit export; Shields/aidefence feedback vizibil în Command Center (fără a expune PII).
+- Captain’s Log search UI (substring pe linii, debounce scurt); audit export; **Shields strip** în Command Center (rezumat path-guard / token / emergency din health, fără căi absolute în UI); Shields/aidefence complet = checklist Claude R-15..R-17.
 - **Gate:** checklist securitate Claude pe R-15..R-17.
 
 ### Faza 6 — Voice & automation (P3)
@@ -76,7 +76,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 | **2** | Host/port într-un singur loc fără recompilare | ~75% | `resolveBootFsmUrls` + inject HTML există în Command Center; polish + doc operator env dacă lipsește |
 | **3** | React + paritate cu vanilla | ~5% | Migrare mare (săptămâni); Codex/Cursor plan incremental + Storybook opțional |
 | **4** | Un truth `jervis-ai-console` + BRAIN canonical | ~15% | Decizie org + merge/submodule TRADE AI ↔ Jarvis AI (în afara unui singur agent) |
-| **5** | Captain search + audit vizibil + Shields fără PII | ~50% | Căutare în log (substring, Command Center); Shields/aidefence endpoint sau embed sigur; audit export; checklist R-15..R17 Claude |
+| **5** | Captain search + audit vizibil + Shields fără PII | ~58% | Strip Shields (health); audit export; endpoint dedicat / aidefence + checklist R-15..R17 Claude |
 | **6** | Voice + LaunchAgent + scheduler verificate | ~20% | Wake word, legare supervisor, teste dispozitiv; `jervis-*.mjs` = owner Claude |
 
 **Țintă realistă:** 100% pe **Faze 0–2 + porțiuni 5** poate fi atinsă în **câteva iterății** cu backlog prioritar; **Faza 3–4 + 6 complet** depinde de decizii de produs și timp de echipă.
