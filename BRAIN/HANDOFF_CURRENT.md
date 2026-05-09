@@ -1,7 +1,7 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-09T23:00:00Z
+last_session_end: 2026-05-10T00:00:00Z
 next_recommended_agent: hermes
 ---
 
@@ -9,11 +9,19 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-10, [cursor]) — Hermes feed obligatoriu + layout token
+
+**DONE:** `MANDATORY_ADAPTER_KEYS` = **`ruflo` + `hermes`** în `collaboration-feeds.js`; test + copilot + first-run + LOCAL_SETUP + `.env.example`. **UIX:** `--layout-max: 1440px`, `.app-shell` și `.glass-bar` pe token-uri (`--radius-lg`, `--space-5`).
+
+**NEXT:** PR **`cursor/hermes-mandatory-feed`** → merge `main`. Voice / Figma.
+
+---
+
 ## Last session summary (2026-05-09, [cursor]) — Ruflo feed obligatoriu în UI + UIX tokens
 
 **DONE:** `collaboration-feeds.js`: **`/api/ruflo/feed` mereu apelat** chiar dacă registry-ul are doar alte adaptoare. Test `collaboration-feeds.test.js`. Copy: inbox fallback Ruflo, copilot, stage Ops, first-run rail, `.env.example` + LOCAL_SETUP. **UIX (plan premium):** token-uri `--space-*`, `--radius-*`, `--shadow-stage`; rail / `stage-header` / `panel-section` pe token-uri + micro-transiție nav.
 
-**NEXT:** Branch **`cursor/ruflo-mandatory-uix`** → PR → merge `main`. Voice / Figma backlog.
+**NEXT:** (Îndeplinit: PR #5 merge.) Voice / Figma backlog.
 
 ---
 

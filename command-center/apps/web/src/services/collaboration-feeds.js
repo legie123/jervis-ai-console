@@ -5,7 +5,7 @@ const DEFAULT_ENDPOINTS = Object.freeze({
   good_mood: "/api/good-mood/feed"
 });
 
-const MANDATORY_ADAPTER_KEYS = Object.freeze(["ruflo"]);
+const MANDATORY_ADAPTER_KEYS = Object.freeze(["ruflo", "hermes"]);
 
 const ADAPTER_CACHE_TTL_MS = 30_000;
 

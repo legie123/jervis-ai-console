@@ -5,7 +5,7 @@ import {
   resetCollaborationFeedCache
 } from "../apps/web/src/services/collaboration-feeds.js";
 
-test("loadCollaborationFeeds always hits ruflo feed when registry lists other adapters only", async () => {
+test("loadCollaborationFeeds always hits ruflo and hermes feeds when registry lists other adapters only", async () => {
   resetCollaborationFeedCache();
   const calls = [];
 
@@ -23,11 +23,15 @@ test("loadCollaborationFeeds always hits ruflo feed when registry lists other ad
     if (path === "/api/ruflo/feed") {
       return { ok: true, enabled: false, entries: [] };
     }
+    if (path === "/api/hermes/feed") {
+      return { ok: true, enabled: false, entries: [] };
+    }
     return { ok: true, entries: [] };
   }
 
   const feeds = await loadCollaborationFeeds({ apiOptional, force: true });
   assert.ok(calls.includes("/api/ruflo/feed"), `ruflo feed required, calls=${calls.join(",")}`);
+  assert.ok(calls.includes("/api/hermes/feed"), `hermes feed required, calls=${calls.join(",")}`);
   assert.ok(Array.isArray(feeds.obsidian));
   assert.equal(feeds.ruflo, undefined);
 });
