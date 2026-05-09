@@ -1,7 +1,7 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-10T00:00:00Z
+last_session_end: 2026-05-10T01:00:00Z
 next_recommended_agent: hermes
 ---
 
@@ -9,11 +9,19 @@ next_recommended_agent: hermes
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-10, [cursor]) — GoodMood feed obligatoriu (triplet inbox)
+
+**DONE:** `MANDATORY_ADAPTER_KEYS` include acum **`good_mood`** alături de `ruflo` și `hermes`. Test `collaboration-feeds`, copilot, first-run, LOCAL_SETUP, `.env.example`.
+
+**NEXT:** PR **`cursor/goodmood-mandatory-feed`** → merge. Voice / Figma.
+
+---
+
 ## Last session summary (2026-05-10, [cursor]) — Hermes feed obligatoriu + layout token
 
 **DONE:** `MANDATORY_ADAPTER_KEYS` = **`ruflo` + `hermes`** în `collaboration-feeds.js`; test + copilot + first-run + LOCAL_SETUP + `.env.example`. **UIX:** `--layout-max: 1440px`, `.app-shell` și `.glass-bar` pe token-uri (`--radius-lg`, `--space-5`).
 
-**NEXT:** (PR **#6** merged în `main` `83c2d5e`.) Voice / Figma; eventual GoodMood la fel ca mandatory dacă product cere.
+**NEXT:** (PR **#6** merged `83c2d5e`.) Voice / Figma.
 
 ---
 

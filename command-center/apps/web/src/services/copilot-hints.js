@@ -8,7 +8,7 @@ const IDLE_WORKSPACE_NUDGE = Object.freeze({
 
 function idleShortcutTip(snapshot) {
   const base =
-    "Tip: ⌘K palette · Voice orb · Unified inbox (Ruflo + Hermes feeds always wired) · ⌘. emergency · ? shortcuts · ⌘, settings.";
+    "Tip: ⌘K palette · Voice orb · Unified inbox (Ruflo + Hermes + GoodMood feeds always wired) · ⌘. emergency · ? shortcuts · ⌘, settings.";
   const sid = snapshot.activeSectionId;
   const extra = sid && IDLE_WORKSPACE_NUDGE[sid] ? ` ${IDLE_WORKSPACE_NUDGE[sid]}` : "";
   return `${base}${extra}`;
