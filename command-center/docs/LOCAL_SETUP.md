@@ -53,6 +53,14 @@ Hot reload while editing the web app:
 npm run dev:web
 ```
 
+Then open **`http://127.0.0.1:4318`** (Vite is configured with `server.port: 4318` in `apps/web/vite.config.js`, **not** the default `5173`).
+
+### If the browser shows `ERR_CONNECTION_REFUSED` on `localhost:5173`
+
+- **5173** is the usual Vite default in other projects; **this Command Center** uses **4318** for `npm run dev:web`.
+- Either open **http://127.0.0.1:4318** after starting `npm run dev:web`, or use the operator on **http://127.0.0.1:4317** with `npm run start:web` (build optional; see above).
+- `ERR_CONNECTION_REFUSED` means no dev server is running: start `npm run dev:web` from `command-center/` in a terminal and keep it open.
+
 ## Adapter feeds — Obsidian, Ruflo, GoodMood (required for full operator picture)
 
 The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/feed`, `/api/ruflo/feed`, `/api/good-mood/feed`, `/api/hermes/feed`). The web UI’s **live unified inbox** and collaboration layer expect these names; wire them on every serious install.
