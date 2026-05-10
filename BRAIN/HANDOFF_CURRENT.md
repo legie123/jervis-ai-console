@@ -21,6 +21,8 @@ next_recommended_agent: hermes
 
 > **Nightly runner:** Scheduled GitHub workflow + local `command-center/scripts/nightly-local.sh` → [`command-center/docs/NIGHTLY_RUNNER.md`](../command-center/docs/NIGHTLY_RUNNER.md).
 
+> **Evening swarm:** bounded nightly Ruflo recipe (honest "non-stop" = you/CI trigger, not daemon) → [`cursor Jarvis ai/plans/JARVIS_RUFLO_EVENING_SWARM.md`](../cursor%20Jarvis%20ai/plans/JARVIS_RUFLO_EVENING_SWARM.md).
+
 ## Autonomous milestone (2026-05-10, [cursor]) — continuity FF + smoke
 
 - **`origin/cursor/ruflo-obsidian-continuity` → `main`:** fast-forward merge locally; `git merge-base --is-ancestor origin/cursor/ruflo-obsidian-continuity main` → OK.
