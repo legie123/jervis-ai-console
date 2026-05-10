@@ -14,6 +14,11 @@ export function loadScratch(storage = typeof globalThis.localStorage !== "undefi
   }
 }
 
+/** True when Desk scratch pad has no non-whitespace text (priorities ignored). */
+export function isDeskNoteEmpty(storage = typeof globalThis.localStorage !== "undefined" ? globalThis.localStorage : null) {
+  return loadScratch(storage).trim().length === 0;
+}
+
 export function saveScratch(text, storage = typeof globalThis.localStorage !== "undefined" ? globalThis.localStorage : null) {
   if (!storage) return false;
   try {

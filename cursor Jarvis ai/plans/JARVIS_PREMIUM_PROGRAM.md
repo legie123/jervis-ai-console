@@ -42,6 +42,7 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 ### Faza 6 — Voice & automation (P3)
 
 - Wake word / voice orb legat de supervisor; LaunchAgent + scheduler verificate.
+- **Smart slice:** contextual copilot signals (`getCopilotSnapshot` → adapter count, inbox sync/empty, Desk scratch empty → `resolveCopilotHint` prefixes).
 
 #### Slice 2026-05 · Personal assistant / Desk + voice orb
 

@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   JARVIS_PERSONAL_KEYS,
+  isDeskNoteEmpty,
   loadPriorities,
   loadScratch,
   savePriorities,
@@ -42,4 +43,35 @@ test("personal desk store roundtrip on memory localStorage", () => {
   ];
   assert.equal(savePriorities(rows, storage), true);
   assert.deepEqual(loadPriorities(storage), rows);
+});
+
+test("isDeskNoteEmpty reflects scratch whitespace", () => {
+  const mem = new Map();
+  /** @type {Storage} */
+  const storage = {
+    get length() {
+      return mem.size;
+    },
+    key() {
+      return null;
+    },
+    clear() {
+      mem.clear();
+    },
+    getItem(key) {
+      return mem.has(key) ? mem.get(key) : null;
+    },
+    setItem(key, val) {
+      mem.set(key, String(val));
+    },
+    removeItem(key) {
+      mem.delete(key);
+    }
+  };
+
+  assert.equal(isDeskNoteEmpty(storage), true);
+  mem.set(JARVIS_PERSONAL_KEYS.scratch, "   ");
+  assert.equal(isDeskNoteEmpty(storage), true);
+  mem.set(JARVIS_PERSONAL_KEYS.scratch, " x ");
+  assert.equal(isDeskNoteEmpty(storage), false);
 });

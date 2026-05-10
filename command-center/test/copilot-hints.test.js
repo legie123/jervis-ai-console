@@ -61,3 +61,43 @@ test("copilot hints summarize ready mission with preview", () => {
   assert.match(text, /ready/i);
   assert.match(text, /draft whatsapp/i);
 });
+
+test("copilot hints nudge when zero adapters enabled and health known", () => {
+  const text = resolveCopilotHint({
+    effectiveFsm: "STANDBY",
+    bootOffline: false,
+    healthKnown: true,
+    adapterEnabledCount: 0,
+    unifiedInboxEmpty: false,
+    deskNoteEmpty: true
+  });
+  assert.match(text, /JARVIS_ADAPTERS_ENABLED/i);
+  assert.match(text, /obsidian,ruflo/i);
+});
+
+test("copilot hints nudge when feeds cold after sync", () => {
+  const text = resolveCopilotHint({
+    effectiveFsm: "STANDBY",
+    bootOffline: false,
+    healthKnown: true,
+    adapterEnabledCount: 2,
+    unifiedInboxEmpty: true,
+    deskNoteEmpty: true,
+    activeSectionId: "section-mission"
+  });
+  assert.match(text, /Unified inbox is quiet/i);
+  assert.match(text, /hermes/i);
+});
+
+test("copilot hints desk scratch empty on desk section", () => {
+  const text = resolveCopilotHint({
+    effectiveFsm: "STANDBY",
+    bootOffline: false,
+    healthKnown: true,
+    adapterEnabledCount: 2,
+    unifiedInboxEmpty: false,
+    deskNoteEmpty: true,
+    activeSectionId: "section-desk"
+  });
+  assert.match(text, /Desk scratch is empty/i);
+});
