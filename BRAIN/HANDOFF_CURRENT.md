@@ -1,8 +1,16 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-10T20:00:00Z
-next_recommended_agent: codex
+last_session_end: 2026-05-10T23:59:59Z
+next_recommended_agent: hermes
+---
+
+## Last session summary (2026-05-10, [cursor]) — Personal Agent Deck (Desk + voice + localStorage)
+
+**DONE:** `mountPersonalDesk` (`apps/web/src/components/personal-desk.js`) — notes + priorități în **`localStorage` `jarvis.personal.*`**, pulse Ruflo, **`canonicalizeDeskOpenApp`**, toast „Desktop bridge …” dacă **`/api/personal/open-app`** e blocat / fără allowlist; refactoring `app.js` delegare + voice intents `desk_*` după **`auditCtl`**. Noi **`desk-open-app.js`**, **`personal-desk-store.js`**, plan **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**, tweak **`JARVIS_PREMIUM_PROGRAM.md`** (Personal assistant slice), **`config/.env.example`**, **`index.html`** (două copii) + **`interactive-guide`**, teste **`desk-open-app.test.js`**, **`personal-desk-store.test.js`**, extindere **`voice-orb.test.js`**, **`healthcheck.js`**. Verificat **`npm test`** (106), **`npm run build`**.
+
+**NEXT:** Închide branch **`cursor/personal-agent-deck-v1`** (merge-review Hermes); LHCI dacă regresii a11y; wake-word / backlog Hermes către priorități.
+
 ---
 
 ## Last session summary (2026-05-10, [cursor]) — Futuristic Command Center UI polish

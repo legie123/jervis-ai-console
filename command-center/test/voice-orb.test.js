@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { parseVoiceCommand } from "../apps/web/src/components/voice-orb.js";
+import { canonicalizeDeskOpenApp } from "../apps/web/src/services/desk-open-app.js";
 
 test("parseVoiceCommand recognizes premium inbox commands", () => {
   const showMessages = parseVoiceCommand("show new messages");
@@ -29,6 +30,8 @@ test("parseVoiceCommand recognizes desk intents (EN + RO)", () => {
 
   assert.equal(parseVoiceCommand("deschide Notes").intent, "desk_open_app");
   assert.equal(parseVoiceCommand("deschide Notes").payload.app, "Notes");
+  assert.equal(parseVoiceCommand("open cursor").intent, "desk_open_app");
+  assert.equal(canonicalizeDeskOpenApp(parseVoiceCommand("open cursor").payload.app), "Cursor");
 
   assert.equal(parseVoiceCommand("add priority call doctor").intent, "desk_add_priority");
   assert.match(parseVoiceCommand("add priority call doctor").payload.text, /doctor/iu);

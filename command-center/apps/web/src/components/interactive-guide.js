@@ -38,7 +38,7 @@ function buildSteps() {
       selector: '[data-guide="personal-desk"]',
       sectionId: "section-desk",
       title: "Personal desk",
-      body: "Local notes and priorities (saved under data/personal), optional macOS open-app via allowlist, Ruflo pulse strip, and voice hooks: “note …”, “prioritate …”, “open …” / “deschide …”."
+      body: "Notes and priorities in this browser (localStorage jarvis.personal.*), optional macOS open-app via operator allowlist, Ruflo pulse strip, and voice hooks: “note …”, “prioritate …”, “open …” / “deschide …”."
     },
     {
       selector: '[data-guide="copilot"]',

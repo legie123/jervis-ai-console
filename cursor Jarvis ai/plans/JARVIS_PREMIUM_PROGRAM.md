@@ -43,6 +43,10 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 
 - Wake word / voice orb legat de supervisor; LaunchAgent + scheduler verificate.
 
+#### Slice 2026-05 · Personal assistant / Desk + voice orb
+
+Desk rail (`section-desk`) + voice intents **`desk_*`**: Notes / priorities în **`localStorage`** (`jarvis.personal.*`); **`deschide`/`open`** trece prin **`POST /api/personal/open-app`** cu **`JARVIS_OPEN_APP_ALLOWLIST`** (bridge macOS din operator, nu din sandbox-ul browserului). Pulse Ruflo pe Desk și inbox obligatoriu **Ruflo + Hermes + GoodMood** rămân sursa pentru agentic workflows. Document detaliat: **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**.
+
 ## Metrici de succes
 
 | Metric | Țintă |

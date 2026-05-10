@@ -97,6 +97,7 @@ The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/f
    or set `JARVIS_ADAPTER_OBSIDIAN_ENABLED=true`, `JARVIS_ADAPTER_RUFLO_ENABLED=true`, `JARVIS_ADAPTER_GOOD_MOOD_ENABLED=true` (and Hermes if you use dispatch handoffs).
 
 2. **Obsidian (writes + sync API)** still needs a vault path and write flag (see [Obsidian Sync](#obsidian-sync) below). **Ruflo**, **Hermes**, and **GoodMood:** the web UI **always** calls `/api/ruflo/feed`, `/api/hermes/feed`, and `/api/good-mood/feed` on inbox refresh. Enable the matching `JARVIS_ADAPTER_*` flags and emit audit rows tagged `ruflo` / `swarm` / `claude_flow`, `hermes` / `dispatcher` / `handoff`, or `good_mood` / `coach` / `mood` so those channels show live rows instead of only fallback cards.
+3. **Personal Desk**: scratch notes + priority list persist in **`localStorage`** (`jarvis.personal.scratch` / `jarvis.personal.priorities`). Native app launch flows through **`POST /api/personal/open-app`**; set **`JARVIS_OPEN_APP_ALLOWLIST`** on the macOS operator host (optional confirm token).
 
 ## Scheduler
 
