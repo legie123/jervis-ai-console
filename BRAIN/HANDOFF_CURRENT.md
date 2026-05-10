@@ -5,6 +5,8 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+> **Evening swarm:** bounded nightly Ruflo recipe (honest "non-stop" = you/CI trigger, not daemon) → [`cursor Jarvis ai/plans/JARVIS_RUFLO_EVENING_SWARM.md`](../cursor%20Jarvis%20ai/plans/JARVIS_RUFLO_EVENING_SWARM.md).
+
 ## Autonomous milestone (2026-05-10, [cursor]) — continuity FF + smoke
 
 - **`origin/cursor/ruflo-obsidian-continuity` → `main`:** fast-forward merge locally; `git merge-base --is-ancestor origin/cursor/ruflo-obsidian-continuity main` → OK.

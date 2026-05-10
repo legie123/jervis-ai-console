@@ -69,8 +69,17 @@ Only after these three should you start writes, spawns, or large refactors.
 
 ---
 
+## Evening swarm
+
+**Bundled repeatable recipe** (honest limits, nightly checklist, `cursor/nightly-YYYYMMDD` branching, Safety / NOT promises): **`cursor Jarvis ai/plans/JARVIS_RUFLO_EVENING_SWARM.md`**.
+
+“Non-stop” = **you or CI triggers** claude-flow + SendMessage pipelines on **bounded** milestones — not unattended completion of “entire Jarvis” without infra, keys, and billing.
+
+---
+
 ## Related docs
 
 - **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`** — Desk, voice, feeds, CLAUDE.md pointer.
 - **`cursor Jarvis ai/plans/JARVIS_PREMIUM_PROGRAM.md`** — Workflow Ruflo, premium gates.
+- **`cursor Jarvis ai/plans/JARVIS_RUFLO_EVENING_SWARM.md`** — Nightly operator runbook + explicit non-promises.
 - **`command-center/docs/LOCAL_SETUP.md`** — adapters, Obsidian, dev URLs.
