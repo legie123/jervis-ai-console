@@ -15,7 +15,7 @@ next_recommended_agent: hermes
 - **`command-center/`:** `npm test` **106/106**, `npm run build` **OK** (local verification).
 - **LHCI:** not re-run this session (no meaningful CSS/style changes in this commit); CI still runs Lighthouse on pushes (`.github/workflows/command-center.yml`).
 - **Obsidian + Ruflo story:** `command-center/config/.env.example`, `command-center/docs/LOCAL_SETUP.md`, `cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`, `command-center/scripts/README-mac.md`, `command-center/scripts/mac-env-example.sh` already aligned on **`main`** (verified content).
-- **GitHub:** **`gh` authenticated**; **PR #8** already **MERGED** (Captain’s Log + premium matrix track). New PR may be opened for this handoff/plan-only commit if pushed.
+- **GitHub:** **`gh` authenticated**; **PR #8** already **MERGED** (Captain’s Log + premium matrix track). **PR #9** (this handoff + plan sync): https://github.com/legie123/jervis-ai-console/pull/9 — **squash merge** when CI green.
 
 **BLOCKED / needs runtime or org (not code-only):**
 - **TCC / macOS Settings:** Accessibility + Automation for the Node host — **USER MUST DO** (no env bypass).
