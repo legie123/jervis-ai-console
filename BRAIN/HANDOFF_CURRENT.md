@@ -1,8 +1,16 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-10T01:00:00Z
+last_session_end: 2026-05-10T20:00:00Z
 next_recommended_agent: codex
+---
+
+## Last session summary (2026-05-10, [cursor]) — Futuristic Command Center UI polish
+
+**DONE:** `command-center/apps/web/src/styles.css` — extended tokens (motion easing/duration, line metrics, nebula + `--gradient-accent-bar` / `--gradient-aurora-bg` / `--gradient-sheen`, focus-ring variables); layered aurora background + fixed sheen pseudo-layer (toned down under `prefers-reduced-transparency`); glass **topbar** with accent strip (`::before`), inner highlight, depth shadow; explicit **`.glass-panel`** treatment for nav; refined **typography/spacing** (brand kicker/title/status, stage title/blurb, shell padding); **nav** hover lift + tokenized transitions; unified **`:focus-visible`** rings (buttons, links, inputs, summary, cmd palette) + skip-link uses `focus-visible`; broader **`prefers-reduced-motion`** (orb, FSM ring, live dot, voice orb/waveform, nav hover, transition squash). Verified: `npm test` (100), `npm run build`, `npx @lhci/cli@0.14.0 autorun` (accessibility assertion pass).
+
+**NEXT:** Merge branch `cursor/futuristic-ui-polish` when ready; Hermes T-004 sign-off for Faza 1 gate.
+
 ---
 
 # Current Handoff — JERVIS
