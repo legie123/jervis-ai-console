@@ -1,0 +1,60 @@
+# Nightly verification: install, test, build, Lighthouse (a11y).
+# Does not run autonomous LLM coding — that requires user-wired tools/API keys.
+# Schedule: 03:00 UTC daily — adjust cron below if you want a different window.
+name: Nightly Command Center
+
+on:
+  schedule:
+    # 03:00 UTC every day (GitHub cron is UTC)
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-command-center
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: command-center
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Production web build
+        run: npm run build
+
+      # Same LHCI step as command-center.yml (static dist + a11y >= 90).
+      # If this job exceeds your GitHub minutes budget, comment out the next step;
+      # push/PR workflow still enforces Lighthouse on command-center changes.
+      - name: Lighthouse (accessibility ≥ 90)
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=./lighthouserc.json
+
+      - name: Write failure marker
+        if: failure()
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Nightly Command Center failed at $(date -u +%Y-%m-%dT%H:%M:%SZ)" > nightly-failure.txt
+          echo "See the job log above for the failing step." >> nightly-failure.txt
+
+      - name: Upload failure marker
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-command-center-failure
+          path: nightly-failure.txt
