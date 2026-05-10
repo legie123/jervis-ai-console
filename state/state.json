@@ -77,6 +77,42 @@
   },
   "recentEvents": [
     {
+      "ts": "02:54:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:53:57",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:53:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:52:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:52:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:51:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
       "ts": "02:50:57",
       "level": "ok",
       "mod": "Sensors",
@@ -339,42 +375,6 @@
       "level": "ok",
       "mod": "Sensors",
       "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:28:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
-    },
-    {
-      "ts": "02:27:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:26:57",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
-    },
-    {
-      "ts": "02:26:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:25:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:25:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
     }
   ],
   "dockerEngine": false,
