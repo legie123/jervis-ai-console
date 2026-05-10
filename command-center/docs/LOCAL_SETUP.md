@@ -14,7 +14,7 @@ Local runtime implemented.
 
 ## Obsidian + Ruflo recommended stack
 
-For a **full Command Center picture** (Captains’ paths, unified inbox, Desk pulse strip, Hermes handoffs, GoodMood), treat **Obsidian** + **Ruflo-class agents** as the default themes:
+For a **full Command Center picture** (vault paths, Captain's Log, unified inbox, Desk pulse strip, Hermes handoffs, GoodMood), treat **Obsidian** + **Ruflo-class agents** as the default themes:
 
 1. Copy `config/.env.example` → **`command-center/.env`** (gitignored). Never paste tokens, WhatsApp secrets, or confirm codes into the repo.
 2. Set at least:

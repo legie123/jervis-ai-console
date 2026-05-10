@@ -9,7 +9,7 @@ next_recommended_agent: hermes
 
 **DONE:** **`main`** fast-forwarded to **`cursor/personal-agent-deck-v1`** (already includes **`cursor/futuristic-ui-polish`**; second merge noop). **`command-center/config/.env.example`**: block „Obsidian + Ruflo recommended stack”, `JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood`, clarificare **`adapterMatchers`** / audit keywords. **`docs/LOCAL_SETUP.md`**: secțiune stivă + legătură **MAC_OPERATOR_SETUP**. Nou **`docs/MAC_OPERATOR_SETUP.md`**: Accessibility + Automation, env open-app, limite TCC (fără „full access” magic), copy-paste shell (fără modificare automată `~/.zshrc`). **`JARVIS_PREMIUM_PROGRAM.md`**: subsecțiune operațională Ruflo + SendMessage; **`JARVIS_PERSONAL_AGENT_DECK.md`**: pointer `adapterMatchers`. Verificare: **`npm test`**, **`npm run build`**, **LHCI** (align CI).
 
-**NEXT:** Push **`main`** sau PR; Hermes T-004; Faza 3 React incremental; „100% premium” rămâne pe închidere pe faze (vezi plan).
+**NEXT:** Push **`main`** (done); Hermes T-004; Faza 3 React incremental; „100% premium” rămâne pe închidere pe faze (vezi plan).
 
 ---
 
