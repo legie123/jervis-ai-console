@@ -5,6 +5,14 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+## Operational (2026-05-10)
+
+- **PR #9** (`legie123/jervis-ai-console`): **merged** — squash to `main`, head branch deleted. GitHub **status checks:** none attached to the PR (`statusCheckRollup` empty); not red.
+- **command-center:** `npm ci` OK · **`npm test` 106/106** · **`npm run build`** OK · **`main` @ `e37a5ac`**
+- **Local dev URL:** from `command-center/`, run **`npm run dev:local`** → Vite serves **http://localhost:5173**
+
+---
+
 ## Wake-up summary (2026-05-11, overnight / [cursor]) — honest scope
 
 **Not claimable as “100% premium program” in one night:** React **T-005**, org **TRADE↔Jarvis** repo convergence, **Claude R-15–17** formal signoff, **wake-word / hardware** voice path, and **Figma** production sign-off all need humans, decisions, or multi-session engineering. This run **did not** pretend those gates closed.
