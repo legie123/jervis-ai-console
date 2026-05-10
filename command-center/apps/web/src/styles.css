@@ -904,6 +904,57 @@ textarea {
   font-size: 11px;
 }
 
+.shields-strip-host {
+  padding: 0 var(--space-4, 16px);
+  max-width: var(--layout-max, 1440px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.shields-strip {
+  margin-bottom: var(--space-3, 10px);
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-raised, rgba(0, 0, 0, 0.22));
+}
+
+.shields-strip-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.shields-chip {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted, rgba(255, 255, 255, 0.82));
+}
+
+.shields-strip--emergency {
+  border-color: rgba(255, 100, 80, 0.45);
+  background: rgba(80, 20, 15, 0.35);
+}
+
+.shields-strip--emergency .shields-chip[data-shield-key="emergency"] {
+  background: rgba(255, 80, 60, 0.25);
+  color: #ffb4a8;
+}
+
+.shields-strip-muted {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.shields-strip--unknown {
+  opacity: 0.85;
+}
+
 .captains-log-wrap {
   display: flex;
   flex-direction: column;
@@ -928,6 +979,36 @@ textarea {
 .captains-log-nav button[disabled] {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.captains-log-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.captains-log-search-label {
+  flex: 1 1 160px;
+  min-width: 120px;
+}
+
+.captains-log-search {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-raised, rgba(0, 0, 0, 0.25));
+  color: inherit;
+}
+
+.captains-log-search-meta {
+  font-size: 11px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.55));
+  font-family: var(--font-mono);
+  white-space: nowrap;
 }
 
 .captains-log-body {

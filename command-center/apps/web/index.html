@@ -54,6 +54,8 @@
         </div>
       </header>
 
+      <div id="mountShieldsStrip" class="shields-strip-host"></div>
+
       <div class="ux-premium-rail">
         <div id="mountFirstRunBanner" class="first-run-banner-host"></div>
         <div id="mountContextCopilot" class="context-copilot-host" data-guide="copilot"></div>
@@ -295,11 +297,13 @@
     </div>
 
     <!--
-      Optional: override FSM poll targets before modules load (premium portability).
-      globalThis.__JARVIS_BOOT_FSM_URLS__ = [
-        { url: "http://127.0.0.1:7777/fsm", port: 7777, label: "Codex" },
-        { url: "http://127.0.0.1:7778/fsm", port: 7778, label: "Claude V3" }
-      ];
+      Premium portability (no rebuild for boot URLs — inject before this script loads):
+        globalThis.__JARVIS_BOOT_FSM_URLS__ = [
+          { url: "http://127.0.0.1:7777/fsm", port: 7777, label: "Codex" },
+          { url: "http://127.0.0.1:7778/fsm", port: 7778, label: "Claude V3" }
+        ];
+      Static UI + remote API (Cloud.ru OBS etc.): build with VITE_OPERATOR_API_ORIGIN and set
+      JARVIS_CORS_ALLOW_ORIGIN on the operator — see docs/DEPLOY_CLOUD_RU.md.
     -->
     <script type="module" src="/src/app.js"></script>
   </body>

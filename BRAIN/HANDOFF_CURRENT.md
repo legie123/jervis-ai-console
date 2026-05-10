@@ -2,18 +2,50 @@
 project: jarvis-ai
 last_agent: cursor
 last_session_end: 2026-05-10T01:00:00Z
-next_recommended_agent: hermes
+next_recommended_agent: codex
 ---
 
 # Current Handoff — JERVIS
 
 What the last agent left for the next.
 
+## Last session summary (2026-05-10, [cursor]) — Faza 2 docs + plan sync
+
+**DONE:** `index.html` (root + `src/`): comentariu unic inject **`__JARVIS_BOOT_FSM_URLS__`** + pointer **`VITE_OPERATOR_API_ORIGIN`** / **`JARVIS_CORS_ALLOW_ORIGIN`** → `DEPLOY_CLOUD_RU.md`. `JARVIS_PREMIUM_PROGRAM.md`: Faza 2 gate actualizat, tabel Faza **2 ~82%**, Faza **5 ~62%**, „Next actions” → merge PR #8 apoi T-005 React.
+
+**NEXT:** Merge **PR #8** (sau review Andrei/Claude); Codex: incremental React T-005.
+
+---
+
+## Last session summary (2026-05-09, [cursor]) — Faza 5: Shields strip în Command Center
+
+**DONE:** `shields-strip.js` — rezumat din `/api/health` (path guard counts, scoped tokens pending, emergency) **fără** afișare root/căi. Mount în `index.html`, `app.js` refresh la health; CSS; `shields-strip.test.js`; `healthcheck.js`; `.gitignore` `.lighthouseci/`. Build + LHCI + **99** teste verzi.
+
+**NEXT:** Merge PR #8; eventual GET `/api/security/shields` redus dacă vrei health mai slim în browser.
+
+---
+
+## Last session summary (2026-05-09, [cursor]) — Faza 1: Lighthouse a11y în CI
+
+**DONE:** `command-center/lighthouserc.json` (doar categorie accessibility, `minScore` 0.9). `.github/workflows/command-center.yml`: pas **Lighthouse** după teste (`npx @lhci/cli@0.14.0 autorun`). `LOCAL_SETUP.md` + `JARVIS_PREMIUM_PROGRAM.md` (gate Faza 1, tabel ~85%). Verificat local: build + lhci **pass**.
+
+**NEXT:** Merge PR #8 (sau rebase branch pe `main` după merge); Hermes marchează T-004 done când e semnat.
+
+---
+
+## Last session summary (2026-05-09, [cursor]) — Premium plan „100%” + Captain’s Log search
+
+**DONE:** `JARVIS_PREMIUM_PROGRAM.md`: secțiune **Execuție către 100%** (definiție gate-uri, tabel faze 0–6, owneri). **Faza 5 (parțial):** `captains-log.js` — căutare substring pe linii, meta „N of M lines”, teste `filterCaptainsLogBody`; stiluri `.captains-log-search*`. `npm test` command-center **96/96**.
+
+**NEXT:** User vrea **100% real** pe toate fazele: rămân **React T-005**, **repo convergence**, **Lighthouse CI**, **Shields UI**, **voice/LaunchAgent** (Claude/Codex). Roadmap e în tabelul din plan; nu e un singur PR.
+
+---
+
 ## Last session summary (2026-05-10, [cursor]) — GoodMood feed obligatoriu (triplet inbox)
 
 **DONE:** `MANDATORY_ADAPTER_KEYS` include acum **`good_mood`** alături de `ruflo` și `hermes`. Test `collaboration-feeds`, copilot, first-run, LOCAL_SETUP, `.env.example`.
 
-**NEXT:** PR **`cursor/goodmood-mandatory-feed`** → merge. Voice / Figma.
+**NEXT:** (PR **#7** merged.) Voice / Figma.
 
 ---
 

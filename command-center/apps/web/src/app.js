@@ -15,6 +15,7 @@ import { mountOperatorSettings } from "./components/operator-settings.js";
 import { mountApprovalQueue } from "./components/approval-queue.js";
 import { mountLiveUnifiedInbox } from "./components/live-unified-inbox.js";
 import { mountPremiumUxRail } from "./components/premium-ux-rail.js";
+import { mountShieldsStrip } from "./components/shields-strip.js";
 import { mountInteractiveGuide } from "./components/interactive-guide.js";
 import { loadCollaborationFeeds } from "./services/collaboration-feeds.js";
 import { createGraphRuntime } from "./services/graph-runtime.js";
@@ -25,6 +26,7 @@ import {
 } from "./services/security-ops.js";
 import { createShellNavigation } from "./services/shell-navigation.js";
 import { createMissionStateStream, mergeBootAndMissionFsm } from "./services/mission-state-stream.js";
+import { resolveApiUrl } from "./services/api-base.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -73,6 +75,7 @@ let bootProbeOffline = false;
 let missionCopilotMeta = { preview: "", planStatus: "" };
 let uxRail = null;
 let activeSectionId = "section-mission";
+const shieldsStripCtl = mountShieldsStrip(document.querySelector("#mountShieldsStrip"));
 
 function getCopilotSnapshot() {
   return {
@@ -319,7 +322,7 @@ function scrollToSection(id) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(path, {
+  const response = await fetch(resolveApiUrl(path), {
     headers: { "content-type": "application/json" },
     ...options
   });
@@ -465,9 +468,11 @@ async function loadHealth() {
     tileToolsCtl.update();
     tileBridgeCtl.update();
     tileSchedCtl.update();
+    shieldsStripCtl.update(health);
     paintFsmWidgets();
   } catch (e) {
     statusLine.textContent = `Operator unreachable · ${e.message}`;
+    shieldsStripCtl.update(null);
     toastRegion.push(`Health check failed · ${e.message}`, "error");
     paintFsmWidgets();
   }

@@ -172,6 +172,16 @@ async function serveStatic(req, res, pathGuard) {
   }
 }
 
+const CORS_ALLOW_ORIGIN = String(process.env.JARVIS_CORS_ALLOW_ORIGIN || "").trim();
+
+function applyCors(req, res) {
+  if (!CORS_ALLOW_ORIGIN) return;
+  res.setHeader("Access-Control-Allow-Origin", CORS_ALLOW_ORIGIN);
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "content-type, accept");
+  res.setHeader("Vary", "Origin");
+}
+
 export function createHttpServer({
   operator = createOperator(),
   whatsappBridge = createWhatsAppBridgeClient(),
@@ -181,6 +191,13 @@ export function createHttpServer({
 } = {}) {
   return http.createServer(async (req, res) => {
     try {
+      applyCors(req, res);
+      if (req.method === "OPTIONS") {
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+
       const url = new URL(req.url, "http://localhost");
       const toolCatalog = buildToolCatalog(operator);
       const adapterCatalog = buildAdapterRegistry();

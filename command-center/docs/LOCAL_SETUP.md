@@ -2,6 +2,8 @@
 
 Status: PHASE 0 DOCS ONLY.
 
+**Hosting cloud (Cloud.ru etc.):** vezi [DEPLOY_CLOUD_RU.md](./DEPLOY_CLOUD_RU.md).
+
 ## Folder
 
 `/Users/user/projects/JARVIS_COMMAND_CENTER`
@@ -37,6 +39,18 @@ From `command-center/` (Node test runner + operator healthcheck script live here
 npm test
 node apps/operator/src/healthcheck.js
 ```
+
+## Lighthouse (accessibility gate, Faza 1)
+
+CI rulează **@lhci/cli** pe build-ul static după `npm test` (vezi `lighthouserc.json` în `command-center/`). Local, după build:
+
+```bash
+cd command-center
+npm run build
+npx --yes @lhci/cli@0.14.0 autorun --config=./lighthouserc.json
+```
+
+Eșuează dacă scorul categoriei **accessibility** scade sub **0.9** (90).
 
 ## Local UI — one URL (recommended)
 

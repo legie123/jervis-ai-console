@@ -1,3 +1,5 @@
+import { resolveApiUrl } from "./api-base.js";
+
 /**
  * Boot supervisor FSM wins whenever non-idle; otherwise show operator mission-derived FSM.
  */
@@ -19,7 +21,7 @@ export function createMissionStateStream({ onPayload, pollMs = 3200 } = {}) {
   async function pollOnce() {
     if (stopped) return;
     try {
-      const res = await fetch("/api/missions/state", {
+      const res = await fetch(resolveApiUrl("/api/missions/state"), {
         headers: { accept: "application/json" },
         cache: "no-store"
       });
@@ -49,7 +51,7 @@ export function createMissionStateStream({ onPayload, pollMs = 3200 } = {}) {
 
     if (typeof EventSource !== "undefined") {
       try {
-        es = new EventSource("/api/missions/stream");
+        es = new EventSource(resolveApiUrl("/api/missions/stream"));
         es.onmessage = (ev) => {
           try {
             const body = JSON.parse(ev.data);

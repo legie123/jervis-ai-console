@@ -20,6 +20,26 @@ export function shiftIsoDate(iso, deltaDays) {
   return `${yy}-${mm}-${dd}`;
 }
 
+/**
+ * @param {string} rawText full markdown or plain text
+ * @param {string} query user search (substring, case-insensitive); empty shows all
+ * @returns {{ body: string, shownLines: number, totalLines: number, queryActive: boolean }}
+ */
+export function filterCaptainsLogBody(rawText, query) {
+  const raw = String(rawText ?? "");
+  const lines = raw.split(/\r?\n/);
+  const q = String(query || "").trim().toLowerCase();
+  if (!q) {
+    return { body: raw, shownLines: lines.length, totalLines: lines.length, queryActive: false };
+  }
+  const hit = lines.filter((line) => line.toLowerCase().includes(q));
+  const body =
+    hit.length === 0
+      ? `(No lines match “${String(query).trim()}”. Clear search to see full log.)`
+      : hit.join("\n");
+  return { body, shownLines: hit.length, totalLines: lines.length, queryActive: true };
+}
+
 export async function loadCaptainsLogForDate(isoDateStr, fetchImpl = fetch) {
   const path = `/captains-log/${isoDateStr}.md`;
   try {
@@ -41,6 +61,13 @@ export function mountCaptainsLog(container) {
         <button type="button" class="btn-secondary btn-compact" data-clog-next aria-label="Next day">›</button>
         <button type="button" class="btn-secondary btn-compact" data-clog-today>Today</button>
       </div>
+      <div class="captains-log-search-row">
+        <label class="captains-log-search-label">
+          <span class="sr-only">Search in Captain’s Log</span>
+          <input type="search" class="captains-log-search" placeholder="Search in log…" autocomplete="off" />
+        </label>
+        <span class="captains-log-search-meta" aria-live="polite"></span>
+      </div>
       <div class="captains-log-inner"></div>
     </div>
   `;
@@ -50,9 +77,25 @@ export function mountCaptainsLog(container) {
   const prevBtn = container.querySelector("[data-clog-prev]");
   const nextBtn = container.querySelector("[data-clog-next]");
   const todayBtn = container.querySelector("[data-clog-today]");
+  const searchInput = container.querySelector(".captains-log-search");
+  const searchMeta = container.querySelector(".captains-log-search-meta");
 
   let currentIso = isoDateString();
   dateInput.value = currentIso;
+  let lastRawText = "";
+  let searchTimer = null;
+
+  function applySearchToPre(pre) {
+    if (!pre) return;
+    const { body, shownLines, totalLines, queryActive } = filterCaptainsLogBody(lastRawText, searchInput.value);
+    pre.textContent = body;
+    if (queryActive) {
+      searchMeta.textContent =
+        shownLines === 0 ? "0 matches" : `${shownLines} of ${totalLines} lines`;
+    } else {
+      searchMeta.textContent = totalLines ? `${totalLines} lines` : "";
+    }
+  }
 
   async function refresh(iso = currentIso) {
     currentIso = iso;
@@ -60,6 +103,7 @@ export function mountCaptainsLog(container) {
     const today = isoDateString();
     nextBtn.disabled = iso >= today;
     const { ok, text } = await loadCaptainsLogForDate(iso);
+    lastRawText = ok ? text : "";
     inner.replaceChildren();
     if (ok && text.trim()) {
       const pre = document.createElement("pre");
@@ -68,8 +112,11 @@ export function mountCaptainsLog(container) {
       pre.textContent = text;
       inner.append(pre);
       container.classList.remove("is-empty");
+      applySearchToPre(pre);
     } else {
       container.classList.add("is-empty");
+      lastRawText = "";
+      searchMeta.textContent = "";
       inner.append(
         emptyBlock(
           "Captain’s Log unavailable",
@@ -78,6 +125,14 @@ export function mountCaptainsLog(container) {
       );
     }
   }
+
+  searchInput.addEventListener("input", () => {
+    if (searchTimer) clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const pre = inner.querySelector(".captains-log-body");
+      if (pre) applySearchToPre(pre);
+    }, 120);
+  });
 
   prevBtn.addEventListener("click", () => refresh(shiftIsoDate(currentIso, -1)));
   nextBtn.addEventListener("click", () => {
