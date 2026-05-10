@@ -53,7 +53,7 @@
       "note": "WA bridge UP @ http://127.0.0.1:8787 · queued=0"
     },
     "MOD-04.Holodeck": {
-      "status": "ONLINE",
+      "status": "STANDBY",
       "note": "subprocess only (start Docker for VM isolation)"
     },
     "MOD-05.Shields": {
@@ -76,6 +76,60 @@
     "alerts": 0
   },
   "recentEvents": [
+    {
+      "ts": "02:48:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:47:57",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:47:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:46:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:46:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:45:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:44:57",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:44:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:43:56",
+      "level": "ok",
+      "mod": "Holodeck",
+      "msg": "subprocess bash PASS in 70047ms (exit=0, sig=-)"
+    },
     {
       "ts": "02:43:27",
       "level": "ok",
@@ -321,60 +375,6 @@
       "level": "ok",
       "mod": "Sensors",
       "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:22:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
-    },
-    {
-      "ts": "02:22:16",
-      "level": "ok",
-      "mod": "Holodeck",
-      "msg": "subprocess bash PASS in 75229ms (exit=0, sig=-)"
-    },
-    {
-      "ts": "02:21:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:20:57",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
-    },
-    {
-      "ts": "02:20:47",
-      "level": "ok",
-      "mod": "Holodeck",
-      "msg": "subprocess bash PASS in 1009ms (exit=0, sig=-)"
-    },
-    {
-      "ts": "02:20:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:20:09",
-      "level": "ok",
-      "mod": "Holodeck",
-      "msg": "subprocess bash PASS in 498ms (exit=0, sig=-)"
-    },
-    {
-      "ts": "02:19:45",
-      "level": "ok",
-      "mod": "Holodeck",
-      "msg": "subprocess bash PASS in 35ms (exit=0, sig=-)"
-    },
-    {
-      "ts": "02:19:30",
-      "level": "ok",
-      "mod": "Holodeck",
-      "msg": "subprocess bash PASS in 40ms (exit=0, sig=-)"
     }
   ],
   "dockerEngine": false,
