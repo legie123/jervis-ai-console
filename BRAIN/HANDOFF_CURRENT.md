@@ -5,6 +5,22 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+## Continuity (Ruflo + Obsidian)
+
+**Pattern:** Ruflo named agents + **SendMessage-first** handoffs carry tasks; **Obsidian** (`Jarvis/NEXT.md` etc.) is the operator second brain. **Resume order:** this file → **`Jarvis/NEXT.md`** → **`git status`**.
+
+**Canonical plan:** [`cursor Jarvis ai/plans/JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md`](../cursor%20Jarvis%20ai/plans/JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md).
+
+---
+
+## Session (2026-05-11, [cursor]) — Dashboard polish (copilot Desk + plan accuracy)
+
+**DONE:** `copilot-hints.js` — nudge contextual **`section-desk`** (note/voice/Ruflo pulse). **`JARVIS_PREMIUM_PROGRAM.md`** — Faza **5 ~68%**, audit export recunoscut (buton **Export JSON** în Ops). Test **`copilot-hints.test.js`** pentru Desk.
+
+**NEXT:** T-005 React incremental; Hermes T-004 sign-off; wake-word backlog.
+
+---
+
 ## Operational (2026-05-10)
 
 - **PR #9** (`legie123/jervis-ai-console`): **merged** — squash to `main`, head branch deleted. GitHub **status checks:** none attached to the PR (`statusCheckRollup` empty); not red.
@@ -23,18 +39,17 @@ next_recommended_agent: hermes
 - **`command-center/`:** `npm test` **106/106**, `npm run build` **OK** (local verification).
 - **LHCI:** not re-run this session (no meaningful CSS/style changes in this commit); CI still runs Lighthouse on pushes (`.github/workflows/command-center.yml`).
 - **Obsidian + Ruflo story:** `command-center/config/.env.example`, `command-center/docs/LOCAL_SETUP.md`, `cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`, `command-center/scripts/README-mac.md`, `command-center/scripts/mac-env-example.sh` already aligned on **`main`** (verified content).
-- **GitHub:** **`gh` authenticated**; **PR #8** already **MERGED** (Captain’s Log + premium matrix track). **PR #9** (this handoff + plan sync): https://github.com/legie123/jervis-ai-console/pull/9 — **squash merge** when CI green.
+- **GitHub:** **`gh` authenticated**; **PR #8** + **PR #9** are **MERGED** into **`main`** (Captain’s Log / premium track + overnight handoff/plan sync).
 
 **BLOCKED / needs runtime or org (not code-only):**
 - **TCC / macOS Settings:** Accessibility + Automation for the Node host — **USER MUST DO** (no env bypass).
 - **Secrets:** WhatsApp / Obsidian / tokens — **USER MUST DO** in private env (never commit).
 - **Hermes:** **T-004** formal “done” + R-15–17 checklist — needs **Hermes/Claude** process.
-- **Squash merge to `main`:** if PR creation fails or CI is red, **USER MUST DO** merge button after green CI.
 
 **USER MUST DO (checklist):**
 1. System Settings → Privacy & Security → **Accessibility** (and **Automation** as prompted) for **Terminal/Cursor** (or whatever launches the operator).
 2. Copy `command-center/config/.env.example` → private `.env`; set `OBSIDIAN_VAULT_PATH`, adapter flags, WhatsApp vars as needed.
-3. If a PR link appears below for `cursor/overnight-integration`: review → **squash merge** when CI green.
+3. Pull latest **`main`** locally (`git pull`) before new feature branches.
 
 ---
 

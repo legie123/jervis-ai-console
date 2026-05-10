@@ -29,6 +29,10 @@ Mandatory collaboration feeds (**`command-center/apps/web/src/services/collabora
 
 **SendMessage-first swarm** stays out-of-band: tasks that mint agents/spawns should originate from Claude Code / MCP between named peers (`architect` ↔ `coder` ↔ …), not implicit polling here. **`npx @claude-flow/cli`** is appropriate only against pinned packages you have audited — never blind installs. For **Unified Inbox** rows, ensure emitted audit lines include **`adapterMatchers`** keywords (e.g. `ruflo`, `swarm`, `claude_flow` in `source` or `action` — see `apps/operator/src/http.js`).
 
+### Continuity & Obsidian second brain
+
+**Resume cold** using a minimal vault folder (`Jarvis/SESSION.md`, `Jarvis/NEXT.md`, `Jarvis/DECISIONS.md`) plus strict session order: **`BRAIN/HANDOFF_CURRENT.md` → `NEXT.md` → `git status`**. Full protocol, env, and matcher table: **[`JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md`](JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md)**.
+
 ## Security posture
 
 - Browser: no unrestricted execution beyond user-consented APIs.

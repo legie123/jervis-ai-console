@@ -81,6 +81,7 @@ SendMessage({ to: "researcher", summary: "Start", message: "[context]" })
 ```
 
 - **Obsidian:** set recomandat `JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood` + `OBSIDIAN_VAULT_PATH`; detalii în **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**.
+- **Continuity:** protocol resume **HANDOFF → Obsidian `NEXT` → git status** + layout vault; **[`JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md`](JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md)**.
 
 ---
 
