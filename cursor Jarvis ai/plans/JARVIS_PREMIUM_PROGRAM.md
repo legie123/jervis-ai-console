@@ -47,6 +47,10 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 
 Desk rail (`section-desk`) + voice intents **`desk_*`**: Notes / priorities în **`localStorage`** (`jarvis.personal.*`); **`deschide`/`open`** trece prin **`POST /api/personal/open-app`** cu **`JARVIS_OPEN_APP_ALLOWLIST`** (bridge macOS din operator, nu din sandbox-ul browserului). Pulse Ruflo pe Desk și inbox obligatoriu **Ruflo + Hermes + GoodMood** rămân sursa pentru agentic workflows. Document detaliat: **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**.
 
+##### Ruflo agents (operational note)
+
+Coordination for **named Ruflo / Claude Code agents** stays **out of band** from the browser: use the **swarm + `SendMessage`-first** pattern described in project **`CLAUDE.md`** (pipeline: researcher → architect → coder → tester, etc.). **`npx @claude-flow/cli`** is only appropriate with a **version you trust**; do not treat copy-paste installs as audited infrastructure. Inbox rows appear when those workflows **write audit events** whose `source` / `action` fields match operator **`adapterMatchers`** for `ruflo` (e.g. substrings `ruflo`, `swarm`, `claude_flow`).
+
 ## Metrici de succes
 
 | Metric | Țintă |

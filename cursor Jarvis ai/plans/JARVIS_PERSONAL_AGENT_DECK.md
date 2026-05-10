@@ -27,7 +27,7 @@ If `POST /api/personal/open-app` fails (empty allowlist, wrong host OS, denied t
 
 Mandatory collaboration feeds (**`command-center/apps/web/src/services/collaboration-feeds.js`**) enforce **Ruflo + Hermes + GoodMood** in Unified Inbox. The Desk exposes a **pulse strip** that reads **`/api/ruflo/feed`**.
 
-**SendMessage-first swarm** stays out-of-band: tasks that mint agents/spawns should originate from Claude Code / MCP between named peers (`architect` ↔ `coder` ↔ …), not implicit polling here. **`npx @claude-flow/cli`** is appropriate only against pinned packages you have audited — never blind installs.
+**SendMessage-first swarm** stays out-of-band: tasks that mint agents/spawns should originate from Claude Code / MCP between named peers (`architect` ↔ `coder` ↔ …), not implicit polling here. **`npx @claude-flow/cli`** is appropriate only against pinned packages you have audited — never blind installs. For **Unified Inbox** rows, ensure emitted audit lines include **`adapterMatchers`** keywords (e.g. `ruflo`, `swarm`, `claude_flow` in `source` or `action` — see `apps/operator/src/http.js`).
 
 ## Security posture
 
