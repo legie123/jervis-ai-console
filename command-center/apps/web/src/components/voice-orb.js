@@ -163,7 +163,7 @@ export function mountVoiceOrb(container, options = {}) {
         <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
       <p class="voice-orb-status">Voice idle</p>
-      <p class="voice-orb-hint">Try: "show new messages", "note …", "prioritate …", "open Safari"</p>
+      <p class="voice-orb-hint">Try: "show new messages", "note …", "add priority …" / "prioritate …", "open Safari", "deschide Notes"</p>
     </section>
   `;
 

@@ -35,6 +35,12 @@ function buildSteps() {
       body: "Unified inbox, tiles, audit, approvals, and Captain's Log stay beside the stage for glanceable ops."
     },
     {
+      selector: '[data-guide="personal-desk"]',
+      sectionId: "section-desk",
+      title: "Personal desk",
+      body: "Local notes and priorities (saved under data/personal), optional macOS open-app via allowlist, Ruflo pulse strip, and voice hooks: “note …”, “prioritate …”, “open …” / “deschide …”."
+    },
+    {
       selector: '[data-guide="copilot"]',
       sectionId: "section-mission",
       title: "Context copilot",

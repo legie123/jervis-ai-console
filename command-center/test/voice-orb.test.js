@@ -29,4 +29,7 @@ test("parseVoiceCommand recognizes desk intents (EN + RO)", () => {
 
   assert.equal(parseVoiceCommand("deschide Notes").intent, "desk_open_app");
   assert.equal(parseVoiceCommand("deschide Notes").payload.app, "Notes");
+
+  assert.equal(parseVoiceCommand("add priority call doctor").intent, "desk_add_priority");
+  assert.match(parseVoiceCommand("add priority call doctor").payload.text, /doctor/iu);
 });
