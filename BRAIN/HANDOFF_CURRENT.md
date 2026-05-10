@@ -1,8 +1,33 @@
 ---
 project: jarvis-ai
 last_agent: cursor
-last_session_end: 2026-05-10T23:59:59Z
+last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
+---
+
+## Wake-up summary (2026-05-11, overnight / [cursor]) — honest scope
+
+**Not claimable as “100% premium program” in one night:** React **T-005**, org **TRADE↔Jarvis** repo convergence, **Claude R-15–17** formal signoff, **wake-word / hardware** voice path, and **Figma** production sign-off all need humans, decisions, or multi-session engineering. This run **did not** pretend those gates closed.
+
+**DONE (automated / verified tonight):**
+- `git fetch --all`; **`main` == `origin/main`**; branch **`cursor/overnight-integration`** cut from latest **`main`**.
+- **`cursor/personal-agent-deck-v1`** and **`cursor/futuristic-ui-polish`** are **already ancestors of `origin/main`** — no extra merge/cherry-pick required; integration backlog is elsewhere (T-005, org, signoffs).
+- **`command-center/`:** `npm test` **106/106**, `npm run build` **OK** (local verification).
+- **LHCI:** not re-run this session (no meaningful CSS/style changes in this commit); CI still runs Lighthouse on pushes (`.github/workflows/command-center.yml`).
+- **Obsidian + Ruflo story:** `command-center/config/.env.example`, `command-center/docs/LOCAL_SETUP.md`, `cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`, `command-center/scripts/README-mac.md`, `command-center/scripts/mac-env-example.sh` already aligned on **`main`** (verified content).
+- **GitHub:** **`gh` authenticated**; **PR #8** already **MERGED** (Captain’s Log + premium matrix track). **PR #9** (this handoff + plan sync): https://github.com/legie123/jervis-ai-console/pull/9 — **squash merge** when CI green.
+
+**BLOCKED / needs runtime or org (not code-only):**
+- **TCC / macOS Settings:** Accessibility + Automation for the Node host — **USER MUST DO** (no env bypass).
+- **Secrets:** WhatsApp / Obsidian / tokens — **USER MUST DO** in private env (never commit).
+- **Hermes:** **T-004** formal “done” + R-15–17 checklist — needs **Hermes/Claude** process.
+- **Squash merge to `main`:** if PR creation fails or CI is red, **USER MUST DO** merge button after green CI.
+
+**USER MUST DO (checklist):**
+1. System Settings → Privacy & Security → **Accessibility** (and **Automation** as prompted) for **Terminal/Cursor** (or whatever launches the operator).
+2. Copy `command-center/config/.env.example` → private `.env`; set `OBSIDIAN_VAULT_PATH`, adapter flags, WhatsApp vars as needed.
+3. If a PR link appears below for `cursor/overnight-integration`: review → **squash merge** when CI green.
+
 ---
 
 ## Last session summary (2026-05-10, [cursor]) — Desk merge verification + Obsidian/Ruflo env + Mac bundle

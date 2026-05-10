@@ -63,9 +63,10 @@ Desk rail (`section-desk`) + voice intents **`desk_*`**: Notes / priorities în 
 
 ## Next actions imediate (Cursor)
 
-1. PR **#8**: merge pe `main` după review (Captain’s Log search, Lighthouse CI, Shields, Cloud deploy hooks).
-2. Faza 3 (T-005): plan incremental React — handoff Codex.
-3. Handoff în `BRAIN/HANDOFF_CURRENT.md` după fiecare sesiune.
+1. **PR #8:** ✅ *merged* (`cursor/premium-captains-log-search` → `main`, 2026-05-09). Următorul milepost: **T-005 React** (plan incremental Codex/Cursor) + **închidere formală T-004** (Hermes).
+2. Faza 3 (T-005): plan incremental React — owner Codex/Cursor; nu e livrabil „pe un noapte”.
+3. Faza 4: decizie org **TRADE AI ↔ Jarvis** (branch / submodule / ownership) — în afara unui singur PR.
+4. Handoff în `BRAIN/HANDOFF_CURRENT.md` după fiecare sesiune (vezi *Wake-up summary* 2026-05-11 pentru scope onest).
 
 ### Workflow Ruflo (obligatoriu în inbox)
 
@@ -87,15 +88,15 @@ SendMessage({ to: "researcher", summary: "Start", message: "[context]" })
 
 **„100% complet”** înseamnă aici: **toate gate-urile de mai sus sunt bifate**, metricile din tabel sunt atinse, și nu există blockere nedocumentate. Nu este un singur commit; este închidere secvențială pe faze (0→6) cu owneri diferiți (Hermes task split, Codex build, Claude review siguranță, Cursor UI, Antigravity vizual).
 
-| Fază | Gate principal | Stare estimată (2026-05-10) | Ce lipsește pentru 100% |
+| Fază | Gate principal | Stare estimată (2026-05-11) | Ce lipsește pentru 100% |
 |------|----------------|-----------------------------|-------------------------|
 | **0** | P0 din `NEXT_ACTIONS` + handoff-uri | ~45% | Hermes/Codex închid T-009..T015, QA vizual, risk register la zi |
-| **1** | T-004 done + Lighthouse a11y ≥ 90 la regresii | ~85% | Semnare task Hermes (T-004); Lighthouse în CI pe build static `apps/web/dist` |
-| **2** | Host/port într-un singur loc fără recompilare | ~82% | Inject HTML boot URLs + build `VITE_OPERATOR_API_ORIGIN` / CORS (`DEPLOY_CLOUD_RU.md`); polish env operator dacă lipsește |
+| **1** | T-004 done + Lighthouse a11y ≥ 90 la regresii | ~88% | Doar **semnarea formală Hermes** pentru T-004; **Lighthouse în CI** este deja în `.github/workflows/command-center.yml` + `lighthouserc.json` |
+| **2** | Host/port într-un singur loc fără recompilare | ~82% | Polish leftover: `VITE_OPERATOR_API_ORIGIN` / CORS / inject boot URLs documentat; env operator dacă mai apare drift |
 | **3** | React + paritate cu vanilla | ~5% | Migrare mare (săptămâni); Codex/Cursor plan incremental + Storybook opțional |
 | **4** | Un truth `jervis-ai-console` + BRAIN canonical | ~15% | Decizie org + merge/submodule TRADE AI ↔ Jarvis AI (în afara unui singur agent) |
-| **5** | Captain search + audit vizibil + Shields fără PII | ~62% | Export audit în UI (buton JSON); Shields strip; checklist R-15..R17 Claude; aidefence endpoint opțional |
-| **6** | Voice + LaunchAgent + scheduler verificate | ~20% | Wake word, legare supervisor, teste dispozitiv; `jervis-*.mjs` = owner Claude |
+| **5** | Captain search + audit vizibil + Shields fără PII | ~64% | Captain search + Shields strip pe `main` (PR #8 și anterior); rămân: export audit vizibil în UI, **R-15..R-17** Claude, aidefence opțional |
+| **6** | Voice + LaunchAgent + scheduler verificate | ~22% | Desk + voice intents **parțial** pe `main`; rămân: **wake word hardware**, legare supervisor completă, teste dispozitiv; `jervis-*.mjs` = owner Claude |
 
 **Țintă realistă:** 100% pe **Faze 0–2 + porțiuni 5** poate fi atinsă în **câteva iterății** cu backlog prioritar; **Faza 3–4 + 6 complet** depinde de decizii de produs și timp de echipă.
 
