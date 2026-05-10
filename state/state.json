@@ -77,6 +77,24 @@
   },
   "recentEvents": [
     {
+      "ts": "02:51:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
+      "ts": "02:50:57",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "vault scan — 39 root entries"
+    },
+    {
+      "ts": "02:50:27",
+      "level": "ok",
+      "mod": "Sensors",
+      "msg": "WA bridge healthy · queued=0"
+    },
+    {
       "ts": "02:49:27",
       "level": "ok",
       "mod": "Sensors",
@@ -357,24 +375,6 @@
       "level": "ok",
       "mod": "Sensors",
       "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:25:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
-    },
-    {
-      "ts": "02:24:27",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "WA bridge healthy · queued=0"
-    },
-    {
-      "ts": "02:23:57",
-      "level": "ok",
-      "mod": "Sensors",
-      "msg": "vault scan — 40 root entries"
     }
   ],
   "dockerEngine": false,
