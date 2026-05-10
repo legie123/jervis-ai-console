@@ -64,6 +64,7 @@ Desk rail (`section-desk`) + voice intents **`desk_*`**: Notes / priorities în 
 ## Next actions imediate (Cursor)
 
 1. **PR #8:** ✅ *merged* (`cursor/premium-captains-log-search` → `main`, 2026-05-09). Următorul milepost: **T-005 React** (plan incremental Codex/Cursor) + **închidere formală T-004** (Hermes).
+   - Overnight / local CI-style verify + optional hourly test loop: [`command-center/docs/NIGHTLY_RUNNER.md`](../../command-center/docs/NIGHTLY_RUNNER.md) (scheduled GitHub nightly + `scripts/nightly-local.sh`).
 2. Faza 3 (T-005): plan incremental React — owner Codex/Cursor; nu e livrabil „pe un noapte”.
 3. Faza 4: decizie org **TRADE AI ↔ Jarvis** (branch / submodule / ownership) — în afara unui singur PR.
 4. Handoff în `BRAIN/HANDOFF_CURRENT.md` după fiecare sesiune (vezi *Wake-up summary* 2026-05-11 pentru scope onest).

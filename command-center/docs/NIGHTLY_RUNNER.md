@@ -30,6 +30,32 @@ With sync to `origin`:
 NIGHTLY_GIT_PULL=true command-center/scripts/nightly-local.sh
 ```
 
+## Optional loop mode (`NIGHTLY_LOOP_HOURS`)
+
+After **one full** verify (`npm ci`, `npm test`, `npm run build`) and optional `NIGHTLY_AI_HOOK`, you can stay inside a **wall-clock window** and re-run **`npm test` only** on an interval:
+
+| Variable | Required | Meaning |
+|---------|----------|--------|
+| `NIGHTLY_LOOP_HOURS` | yes, to enable | Window length in hours (decimals allowed, e.g. `8` or `1.5`). Must be **> 0**. |
+| `NIGHTLY_LOOP_INTERVAL_SEC` | no | Seconds **between** iterations (sleep), then **`npm test`**. Default **`3600`** (hourly). Must be ≥ 1 integer. |
+
+The script computes a deadline (`start + floor(hours × 3600 + 0.5)` seconds). Each iteration sleeps `min(interval, remaining_window)` seconds, runs `npm test`, repeats until the deadline. If the remaining window before a sleep would be exceeded, sleep is clipped so nothing runs past the window.
+
+Example (optional pull + ~8 h hourly tests):
+
+```bash
+NIGHTLY_GIT_PULL=true \
+NIGHTLY_LOOP_HOURS=8 \
+NIGHTLY_LOOP_INTERVAL_SEC=3600 \
+command-center/scripts/nightly-local.sh
+```
+
+Fast dry check (decimal hours + shorter interval):
+
+```bash
+NIGHTLY_LOOP_HOURS=0.05 NIGHTLY_LOOP_INTERVAL_SEC=30 command-center/scripts/nightly-local.sh
+```
+
 ## Optional hook (`NIGHTLY_AI_HOOK`) — default off
 
 To chain **your own** script after a green build (e.g. a **`codex`** or **`claude`** CLI — **not** shipped here; wire it yourself):
