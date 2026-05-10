@@ -20,7 +20,7 @@ function buildSteps() {
       selector: '[data-guide="nav-rail"]',
       sectionId: "section-mission",
       title: "Workspace rail",
-      body: "Mission, Ops, Bridge, System, Graph — one active pane at a time. Use ⌘1 … ⌘5 or click to switch without endless scrolling."
+      body: "Mission, Ops, Bridge, System, Graph, Desk — one active pane at a time. Use ⌘1 … ⌘6 or click to switch without endless scrolling."
     },
     {
       selector: '[data-guide="stage-header"]',

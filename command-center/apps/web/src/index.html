@@ -83,6 +83,10 @@
             <span class="nav-shortcut" aria-hidden="true">⌘5</span>
             Graph
           </button>
+          <button type="button" class="nav-btn" data-target="section-desk">
+            <span class="nav-shortcut" aria-hidden="true">⌘6</span>
+            Desk
+          </button>
         </nav>
 
         <main id="main-content" class="center-stage" tabindex="-1" aria-labelledby="stageTitle">
@@ -255,7 +259,56 @@
               </div>
             </details>
           </section>
-        </main>
+
+          <section id="section-desk" class="view-section" hidden>
+            <details class="panel-section glass" open>
+              <summary>Personal desk</summary>
+              <div class="panel-section-body" data-guide="personal-desk">
+                <p class="stack-hint" id="personalDeskRufloStrip" role="status" aria-live="polite">
+                  Ruflo: loading…
+                </p>
+                <label for="personalDeskNotes">Notes</label>
+                <textarea
+                  id="personalDeskNotes"
+                  class="desk-notes-area"
+                  rows="8"
+                  placeholder="Scratch pad — saved locally under data/personal. Voice: “note …”"
+                  autocomplete="off"
+                ></textarea>
+                <div class="row-toolbar">
+                  <button type="button" id="personalDeskSaveNotes">Save notes</button>
+                </div>
+                <h3 class="stack-heading">Priorities</h3>
+                <div class="row-toolbar desk-priority-add">
+                  <label class="sr-only" for="personalDeskPriorityNew">New priority</label>
+                  <input
+                    id="personalDeskPriorityNew"
+                    type="text"
+                    placeholder="Add priority (voice: “prioritate …”)"
+                    autocomplete="off"
+                  />
+                  <button type="button" id="personalDeskPriorityAdd">Add</button>
+                </div>
+                <div id="personalDeskPriorityList" class="list" role="list" aria-label="Priority list"></div>
+                <h3 class="stack-heading">Open app (allowlist)</h3>
+                <p class="stack-hint">
+                  macOS only — operator validates <code>JARVIS_OPEN_APP_ALLOWLIST</code>. No arbitrary shell from the UI.
+                </p>
+                <div class="row-toolbar desk-open-app">
+                  <label class="sr-only" for="personalDeskOpenApp">Application name</label>
+                  <input id="personalDeskOpenApp" type="text" placeholder="Safari" autocomplete="off" />
+                  <button type="button" id="personalDeskOpenAppBtn">Open</button>
+                </div>
+                <label for="personalDeskOpenConfirm">Open-app confirm token (only if operator sets JARVIS_OPEN_APP_CONFIRM_TOKEN)</label>
+                <input
+                  id="personalDeskOpenConfirm"
+                  type="password"
+                  autocomplete="off"
+                  placeholder="Optional — paste token from server env"
+                />
+              </div>
+            </details>
+          </section>
 
         <aside class="inspector glass-panel" aria-label="Inspector" data-guide="inspector">
           <div id="mountLiveUnifiedInbox"></div>
@@ -287,7 +340,7 @@
           <li>Palette → Help · Spotlight workspace tour</li>
           <li><kbd>⌘</kbd><kbd>Enter</kbd> Confirm / advance pending gate</li>
           <li><kbd>Esc</kbd> Abort dialog</li>
-          <li><kbd>⌘</kbd><kbd>1…5</kbd> Switch workspace (Mission…Graph)</li>
+          <li><kbd>⌘</kbd><kbd>1…6</kbd> Switch workspace (Mission…Desk)</li>
           <li><kbd>⌘</kbd><kbd>,</kbd> Operator settings</li>
           <li><kbd>⌘</kbd><kbd>.</kbd> Emergency stop</li>
           <li><kbd>?</kbd> Toggle this panel</li>

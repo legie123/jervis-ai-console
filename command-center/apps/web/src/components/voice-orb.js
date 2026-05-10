@@ -10,7 +10,9 @@ const VOICE_STATE_COPY = {
 function normalizeText(input) {
   return String(input || "")
     .toLowerCase()
-    .replace(/[^\w\s]/g, " ")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -21,30 +23,112 @@ function readTargetFor(text) {
   return "selected";
 }
 
+function stripLeading(cmd, prefixes) {
+  const t = String(cmd || "").trim();
+  for (const pre of prefixes) {
+    const p = pre.toLowerCase();
+    const low = t.toLowerCase();
+    if (low.startsWith(p)) {
+      return t.slice(pre.length).trim();
+    }
+  }
+  return "";
+}
+
+function extractAfterKeyword(raw, keywords) {
+  const low = raw.toLowerCase();
+  for (const kw of keywords) {
+    const k = kw.toLowerCase();
+    const idx = low.indexOf(k);
+    if (idx >= 0) {
+      return raw.slice(idx + kw.length).trim();
+    }
+  }
+  return "";
+}
+
 export function parseVoiceCommand(input) {
+  const raw = String(input || "").trim();
   const normalized = normalizeText(input);
   if (!normalized) {
-    return { intent: "unknown", normalized, target: "selected", confidence: 0 };
+    return { intent: "unknown", normalized, target: "selected", confidence: 0, payload: {} };
+  }
+
+  const openRest =
+    stripLeading(raw, ["open ", "launch ", "start "]) ||
+    stripLeading(raw, ["deschide ", "deschidă ", "porneste ", "pornește "]);
+  if (openRest) {
+    const app = openRest.replace(/\s+/g, " ").trim();
+    if (app.length > 0 && app.length <= 64 && /^[\p{L}\p{N}][\p{L}\p{N}\s.'-]*$/u.test(app)) {
+      return {
+        intent: "desk_open_app",
+        normalized,
+        target: "selected",
+        confidence: 0.91,
+        payload: { app }
+      };
+    }
+  }
+
+  const noteText = extractAfterKeyword(raw, [
+    "adaugă nota ",
+    "adauga nota ",
+    "scrie nota ",
+    "scrie notă ",
+    "ia notă ",
+    "ia nota ",
+    "notiță ",
+    "notita ",
+    "notă ",
+    "nota ",
+    "note "
+  ]);
+  if (noteText.length > 0 && noteText.length <= 8000) {
+    return {
+      intent: "desk_note",
+      normalized,
+      target: "selected",
+      confidence: 0.87,
+      payload: { text: noteText }
+    };
+  }
+
+  const priorityText = extractAfterKeyword(raw, [
+    "adaugă prioritate ",
+    "adauga prioritate ",
+    "adauga o prioritate ",
+    "add priority ",
+    "prioritate ",
+    "priority "
+  ]);
+  if (priorityText.length > 0 && priorityText.length <= 500) {
+    return {
+      intent: "desk_add_priority",
+      normalized,
+      target: "selected",
+      confidence: 0.88,
+      payload: { text: priorityText }
+    };
   }
 
   const hasInboxWords = /(message|messages|inbox|in box)/.test(normalized);
   if (hasInboxWords && /(show|open|focus|refresh|new|latest|check)/.test(normalized)) {
-    return { intent: "show_new_messages", normalized, target: "selected", confidence: 0.92 };
+    return { intent: "show_new_messages", normalized, target: "selected", confidence: 0.92, payload: {} };
   }
 
   if (/(approve|confirm|accept)/.test(normalized) && /(last|latest|top|pending|queue)/.test(normalized)) {
-    return { intent: "approve_last", normalized, target: "last", confidence: 0.96 };
+    return { intent: "approve_last", normalized, target: "last", confidence: 0.96, payload: {} };
   }
 
   if (/(read|speak|say)/.test(normalized) && /(aloud|out loud|selected|selection|this|item|message)/.test(normalized)) {
-    return { intent: "read_aloud", normalized, target: readTargetFor(normalized), confidence: 0.93 };
+    return { intent: "read_aloud", normalized, target: readTargetFor(normalized), confidence: 0.93, payload: {} };
   }
 
   if (/(voice|dictate|spoken)/.test(normalized) && /(reply|response|respond)/.test(normalized)) {
-    return { intent: "voice_reply", normalized, target: readTargetFor(normalized), confidence: 0.86 };
+    return { intent: "voice_reply", normalized, target: readTargetFor(normalized), confidence: 0.86, payload: {} };
   }
 
-  return { intent: "unknown", normalized, target: "selected", confidence: 0.1 };
+  return { intent: "unknown", normalized, target: "selected", confidence: 0.1, payload: {} };
 }
 
 function transcriptFromRecognition(event) {
@@ -57,6 +141,9 @@ function intentLabel(intent) {
   if (intent === "approve_last") return "approve last";
   if (intent === "read_aloud") return "read aloud";
   if (intent === "voice_reply") return "voice reply";
+  if (intent === "desk_note") return "save note";
+  if (intent === "desk_add_priority") return "add priority";
+  if (intent === "desk_open_app") return "open app";
   return "unknown";
 }
 
@@ -76,7 +163,7 @@ export function mountVoiceOrb(container, options = {}) {
         <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
       <p class="voice-orb-status">Voice idle</p>
-      <p class="voice-orb-hint">Try: "show new messages"</p>
+      <p class="voice-orb-hint">Try: "show new messages", "note …", "prioritate …", "open Safari"</p>
     </section>
   `;
 

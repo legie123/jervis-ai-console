@@ -61,6 +61,15 @@ const graphSearch = document.querySelector("#graphSearch");
 const graphMatchCount = document.querySelector("#graphMatchCount");
 const graphSvg = document.querySelector("#graphSvg");
 const graphNodeDetails = document.querySelector("#graphNodeDetails");
+const personalDeskNotes = document.querySelector("#personalDeskNotes");
+const personalDeskSaveNotes = document.querySelector("#personalDeskSaveNotes");
+const personalDeskPriorityNew = document.querySelector("#personalDeskPriorityNew");
+const personalDeskPriorityAdd = document.querySelector("#personalDeskPriorityAdd");
+const personalDeskPriorityList = document.querySelector("#personalDeskPriorityList");
+const personalDeskRufloStrip = document.querySelector("#personalDeskRufloStrip");
+const personalDeskOpenApp = document.querySelector("#personalDeskOpenApp");
+const personalDeskOpenAppBtn = document.querySelector("#personalDeskOpenAppBtn");
+const personalDeskOpenConfirm = document.querySelector("#personalDeskOpenConfirm");
 
 /** Elite UI shared state — boot supervisor vs operator mission FSM merge */
 let bootFsmState = "STANDBY";
@@ -99,16 +108,18 @@ const orbApi = mountJervisOrb(document.querySelector("#mountJervisOrb"), () => e
 const fsmApi = mountFsmPill(document.querySelector("#mountFsmPill"), () => effectiveFsmState());
 const riskApi = mountRiskIndicator(document.querySelector("#mountRiskIndicator"), () => riskTierIndex);
 
+const voiceCommandHandlers = {
+  show_new_messages: () => handleVoiceShowMessages(),
+  approve_last: () => handleVoiceApproveLast(),
+  read_aloud: () => handleVoiceReadSelected(),
+  voice_reply: () => handleVoiceReplySelected()
+};
+
 const voiceOrbApi = mountVoiceOrb(document.querySelector("#mountVoiceOrb"), {
   onToggle: (on) => {
     if (on) toastRegion.push("Voice channel armed", "info");
   },
-  commandHandlers: {
-    show_new_messages: () => handleVoiceShowMessages(),
-    approve_last: () => handleVoiceApproveLast(),
-    read_aloud: () => handleVoiceReadSelected(),
-    voice_reply: () => handleVoiceReplySelected()
-  }
+  commandHandlers: voiceCommandHandlers
 });
 
 const bootBadgeEl = document.querySelector("#mountBootBadge");
@@ -455,6 +466,209 @@ function handleVoiceReplySelected() {
   return { statusText: "Voice reply armed" };
 }
 
+let personalPriorities = [];
+
+function scratchNotesPayload(text) {
+  const body = String(text ?? "").trimEnd();
+  return {
+    notes: [{ id: "scratch", text: body, ts: new Date().toISOString() }]
+  };
+}
+
+async function saveDeskNotesFromUi() {
+  const payload = scratchNotesPayload(personalDeskNotes?.value || "");
+  await api("/api/personal/notes", { method: "POST", body: JSON.stringify(payload) });
+}
+
+async function persistPersonalPriorities({ announce = false } = {}) {
+  await api("/api/personal/priorities", {
+    method: "POST",
+    body: JSON.stringify({ priorities: personalPriorities })
+  });
+  if (announce) toastRegion.push("Priorities updated", "info");
+}
+
+function renderPersonalPriorities() {
+  if (!personalDeskPriorityList) return;
+  personalDeskPriorityList.replaceChildren();
+  const sorted = [...personalPriorities].sort((a, b) => a.order - b.order);
+  if (sorted.length === 0) {
+    emptyListMessage(
+      personalDeskPriorityList,
+      "☆",
+      "No priorities",
+      'Add one above or say “prioritate …”.'
+    );
+    return;
+  }
+  sorted.forEach((item, idx) => {
+    const row = document.createElement("article");
+    row.className = "item desk-priority-row";
+    row.setAttribute("role", "listitem");
+
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.checked = item.done;
+    chk.setAttribute("aria-label", `Done: ${item.text}`);
+    chk.addEventListener("change", async () => {
+      item.done = chk.checked;
+      await persistPersonalPriorities({ announce: false });
+      renderPersonalPriorities();
+    });
+
+    const lab = document.createElement("span");
+    lab.textContent = item.text;
+    if (item.done) lab.classList.add("desk-priority-done");
+
+    const up = document.createElement("button");
+    up.type = "button";
+    up.textContent = "↑";
+    up.setAttribute("aria-label", "Move up");
+    up.disabled = idx === 0;
+    up.addEventListener("click", async () => {
+      if (idx === 0) return;
+      const prev = sorted[idx - 1];
+      const tmp = item.order;
+      item.order = prev.order;
+      prev.order = tmp;
+      await persistPersonalPriorities({ announce: false });
+      renderPersonalPriorities();
+    });
+
+    const down = document.createElement("button");
+    down.type = "button";
+    down.textContent = "↓";
+    down.setAttribute("aria-label", "Move down");
+    down.disabled = idx === sorted.length - 1;
+    down.addEventListener("click", async () => {
+      if (idx >= sorted.length - 1) return;
+      const next = sorted[idx + 1];
+      const tmp = item.order;
+      item.order = next.order;
+      next.order = tmp;
+      await persistPersonalPriorities({ announce: false });
+      renderPersonalPriorities();
+    });
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.textContent = "Remove";
+    del.addEventListener("click", async () => {
+      personalPriorities = personalPriorities.filter((p) => p.id !== item.id);
+      await persistPersonalPriorities({ announce: true });
+      renderPersonalPriorities();
+    });
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "row-toolbar desk-priority-tools";
+    toolbar.append(up, down, del);
+
+    row.append(chk, lab, toolbar);
+    personalDeskPriorityList.append(row);
+  });
+}
+
+async function refreshPersonalRufloStrip() {
+  if (!personalDeskRufloStrip) return;
+  try {
+    const payload = await apiOptional("/api/ruflo/feed");
+    if (!payload) {
+      personalDeskRufloStrip.textContent = "Ruflo: offline or unavailable.";
+      return;
+    }
+    const entries = payload.entries || [];
+    const latest = entries[0];
+    personalDeskRufloStrip.textContent = latest
+      ? `Ruflo pulse · ${entries.length} recent · latest: ${latest.title || "event"}`
+      : `Ruflo pulse · ${payload.enabled === false ? "adapter disabled" : "no entries yet"}`;
+  } catch {
+    personalDeskRufloStrip.textContent = "Ruflo: could not load feed.";
+  }
+}
+
+async function loadPersonalDesk() {
+  if (!personalDeskNotes) return;
+  try {
+    const { notes } = await api("/api/personal/notes");
+    const blob = Array.isArray(notes) && notes.length ? notes.map((n) => n.text).join("\n\n") : "";
+    personalDeskNotes.value = blob;
+  } catch (e) {
+    toastRegion.push(`Notes load failed · ${e.message}`, "error");
+  }
+  try {
+    const { priorities } = await api("/api/personal/priorities");
+    personalPriorities = Array.isArray(priorities) ? priorities : [];
+    renderPersonalPriorities();
+  } catch (e) {
+    toastRegion.push(`Priorities load failed · ${e.message}`, "error");
+  }
+  await refreshPersonalRufloStrip();
+}
+
+function deskOpenConfirmValue() {
+  return String(personalDeskOpenConfirm?.value || "").trim();
+}
+
+async function handleDeskOpenApp(appName) {
+  const app = String(appName || "").trim();
+  if (!app) {
+    toastRegion.push("App name required", "error");
+    return;
+  }
+  try {
+    const body = { app };
+    const confirmTok = deskOpenConfirmValue();
+    if (confirmTok) body.confirmToken = confirmTok;
+    const result = await api("/api/personal/open-app", { method: "POST", body: JSON.stringify(body) });
+    if (result.dryRun) toastRegion.push(`Open (dry run): ${result.app}`, "info");
+    else toastRegion.push(`Opened ${result.app}`, "info");
+  } catch (e) {
+    toastRegion.push(e.message, "error");
+  }
+}
+
+Object.assign(voiceCommandHandlers, {
+  desk_note: async ({ parsed }) => {
+    const line = String(parsed.payload?.text || "").trim();
+    if (!line) return { spokenText: "I did not catch the note text." };
+    const cur = personalDeskNotes?.value || "";
+    personalDeskNotes.value = cur ? `${cur}\n${line}` : line;
+    await saveDeskNotesFromUi();
+    toastRegion.push("Note saved", "info");
+    scrollToSection("section-desk");
+    return { spokenText: "Note saved." };
+  },
+  desk_add_priority: async ({ parsed }) => {
+    const text = String(parsed.payload?.text || "").trim();
+    if (!text) return { spokenText: "I did not catch the priority." };
+    const maxOrder = personalPriorities.reduce((m, p) => Math.max(m, Number(p.order) || 0), -1);
+    personalPriorities.push({
+      id: `p_${Date.now()}`,
+      text,
+      done: false,
+      order: maxOrder + 1
+    });
+    await persistPersonalPriorities({ announce: true });
+    renderPersonalPriorities();
+    scrollToSection("section-desk");
+    return { spokenText: "Priority added." };
+  },
+  desk_open_app: async ({ parsed }) => {
+    const app = String(parsed.payload?.app || "").trim();
+    if (!app) return { spokenText: "Which app should I open?" };
+    try {
+      const body = { app };
+      const confirmTok = deskOpenConfirmValue();
+      if (confirmTok) body.confirmToken = confirmTok;
+      const res = await api("/api/personal/open-app", { method: "POST", body: JSON.stringify(body) });
+      if (res.dryRun) return { spokenText: `Dry run: would open ${res.app}.` };
+      return { spokenText: `Opened ${res.app}.` };
+    } catch (e) {
+      return { spokenText: e.message || "Open app failed." };
+    }
+  }
+});
+
 async function loadHealth() {
   try {
     const health = await api("/api/health");
@@ -698,6 +912,12 @@ const paletteCtl = mountCommandPalette(document.querySelector("#mountCommandPale
       run: () => scrollToSection("section-graph")
     },
     {
+      title: "Go · Personal desk",
+      group: "Navigation",
+      keywords: "notes priorities ruflo voice desk scratch",
+      run: () => scrollToSection("section-desk")
+    },
+    {
       title: "Go · Unified inbox",
       group: "Navigation",
       keywords: "live inbox whatsapp approvals audit reminders obsidian ruflo hermes good mood",
@@ -833,6 +1053,7 @@ shellNavigation = createShellNavigation({
   onActiveSectionChange: (id) => {
     activeSectionId = id;
     uxRail?.updateCopilot?.(getCopilotSnapshot);
+    if (id === "section-desk") refreshPersonalRufloStrip();
   }
 });
 
@@ -1014,6 +1235,38 @@ document.querySelector("#graphifyExportBtn").addEventListener("click", async () 
   }
 });
 
+personalDeskSaveNotes?.addEventListener("click", async () => {
+  try {
+    await saveDeskNotesFromUi();
+    toastRegion.push("Notes saved", "info");
+    await auditCtl?.refresh?.();
+  } catch (err) {
+    toastRegion.push(err.message, "error");
+  }
+});
+personalDeskPriorityAdd?.addEventListener("click", async () => {
+  try {
+    const text = personalDeskPriorityNew?.value?.trim();
+    if (!text) {
+      toastRegion.push("Enter a priority", "error");
+      return;
+    }
+    const maxOrder = personalPriorities.reduce((m, p) => Math.max(m, Number(p.order) || 0), -1);
+    personalPriorities.push({
+      id: `p_${Date.now()}`,
+      text,
+      done: false,
+      order: maxOrder + 1
+    });
+    personalDeskPriorityNew.value = "";
+    await persistPersonalPriorities({ announce: true });
+    renderPersonalPriorities();
+  } catch (err) {
+    toastRegion.push(err.message, "error");
+  }
+});
+personalDeskOpenAppBtn?.addEventListener("click", () => handleDeskOpenApp(personalDeskOpenApp?.value));
+
 /** Predictive focus */
 function predictiveFocus() {
   if (effectiveFsmState() === "WAITING_CONFIRMATION" && pendingGate.element?.open) {
@@ -1031,5 +1284,6 @@ await loadDrafts();
 await loadJobs();
 await auditCtl.refresh();
 await unifiedInboxCtl?.refresh();
+await loadPersonalDesk();
 
 predictiveFocus();

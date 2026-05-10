@@ -210,3 +210,11 @@ Then create a draft in the UI and use Send Gate.
 For inbound messages, expose local port `4317` with a tunnel and configure Meta webhook callback:
 
 `https://your-public-url/webhooks/whatsapp`
+
+## Suggested MCP & extensions (agentic workspaces)
+
+These pair well with a local operator + command center; install from the Cursor / VS Code marketplace by name (IDs change, so search in-product).
+
+- **Browser / web automation MCP** — lets an agent verify pages and workflows without guessing URLs; useful for “dashboard + webhook” integration smoke tests ([Cursor MCP docs](https://cursor.com/docs/context/mcp)).
+- **Figma MCP (official)** — bridges design tokens and screens when you want the desk UI and Figma libraries to stay aligned ([Figma MCP](https://www.figma.com/mcp/catalog/)).
+- **Git / project MCP (e.g. GitHub)** — keeps PRs, issues, and code search in the same loop as the operator when you outgrow ad-hoc scripts ([GitHub MCP](https://github.com/github/github-mcp-server)).

@@ -3,7 +3,8 @@ export const NAV_SECTION_IDS = Object.freeze([
   "section-ops",
   "section-bridge",
   "section-system",
-  "section-graph"
+  "section-graph",
+  "section-desk"
 ]);
 
 export const SECTION_STAGE_META = Object.freeze({
@@ -26,6 +27,10 @@ export const SECTION_STAGE_META = Object.freeze({
   "section-graph": {
     title: "Graph",
     blurb: "Operational map search, zoom, and Graphify export."
+  },
+  "section-desk": {
+    title: "Desk",
+    blurb: "Personal notes, priorities, voice hooks, and Ruflo pulse — local desk beside operator tools."
   }
 });
 
@@ -134,7 +139,7 @@ export function createShellNavigation({
       event.preventDefault();
       Promise.resolve(onEmergencyStop?.("keyboard_shortcut")).catch((error) => onError?.(error));
     }
-    if (meta && event.key >= "1" && event.key <= "5") {
+    if (meta && event.key >= "1" && event.key <= "6") {
       event.preventDefault();
       const id = NAV_SECTION_IDS[Number(event.key) - 1];
       if (id) scrollToSection(id);

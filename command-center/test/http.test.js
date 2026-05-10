@@ -82,6 +82,10 @@ test("serves health and static UI", async () => {
     assert.match(html, /bridgePreflightBtn/);
     assert.match(html, /auto-issued scoped token/);
 
+    const notesProbe = await fetch(`http://127.0.0.1:${port}/api/personal/notes`).then((res) => res.json());
+    assert.equal(notesProbe.ok, true);
+    assert.ok(Array.isArray(notesProbe.notes));
+
     const graphViewer = await fetch(`http://127.0.0.1:${port}/graph-viewer.js`).then((res) => res.text());
     assert.match(graphViewer, /layoutGraph/);
     assert.match(graphViewer, /filterGraphBySearch/);
@@ -475,5 +479,121 @@ test("graphify export endpoint writes operational map", async () => {
     assert.ok(result.map.counts.nodes >= result.map.counts.tools);
   } finally {
     await close(server);
+  }
+});
+
+test("personal desk notes and priorities roundtrip", async () => {
+  const prevProfile = process.env.JARVIS_DATA_PROFILE;
+  const tmpProfile = `http_personal_${Date.now()}`;
+  process.env.JARVIS_DATA_PROFILE = tmpProfile;
+  const server = createHttpServer();
+  const port = await listen(server);
+  try {
+    let body = await fetch(`http://127.0.0.1:${port}/api/personal/notes`).then((res) => res.json());
+    assert.equal(body.ok, true);
+    assert.deepEqual(body.notes, []);
+
+    body = await fetch(`http://127.0.0.1:${port}/api/personal/notes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        notes: [{ id: "a1", text: "alpha", ts: "2026-01-01T00:00:00.000Z" }]
+      })
+    }).then((res) => res.json());
+    assert.equal(body.ok, true);
+    assert.equal(body.notes[0].text, "alpha");
+
+    body = await fetch(`http://127.0.0.1:${port}/api/personal/priorities`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        priorities: [
+          { id: "p1", text: "First", done: false, order: 1 },
+          { id: "p2", text: "Second", done: true, order: 0 }
+        ]
+      })
+    }).then((res) => res.json());
+    assert.equal(body.ok, true);
+    assert.equal(body.priorities[0].text, "Second");
+
+    body = await fetch(`http://127.0.0.1:${port}/api/personal/priorities`).then((res) => res.json());
+    assert.equal(body.priorities.length, 2);
+  } finally {
+    await close(server);
+    try {
+      fs.rmSync(path.join(process.cwd(), "data", tmpProfile), { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+    if (prevProfile === undefined) delete process.env.JARVIS_DATA_PROFILE;
+    else process.env.JARVIS_DATA_PROFILE = prevProfile;
+  }
+});
+
+test("personal open-app allowlist and optional confirm token", async () => {
+  const prevAllow = process.env.JARVIS_OPEN_APP_ALLOWLIST;
+  const prevDry = process.env.JARVIS_OPEN_APP_DRY_RUN;
+  const prevConfirm = process.env.JARVIS_OPEN_APP_CONFIRM_TOKEN;
+  const server = createHttpServer();
+  const port = await listen(server);
+  try {
+    delete process.env.JARVIS_OPEN_APP_ALLOWLIST;
+    let res = await fetch(`http://127.0.0.1:${port}/api/personal/open-app`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ app: "Safari" })
+    });
+    let body = await res.json();
+    assert.equal(res.status, 403);
+    assert.equal(body.ok, false);
+
+    process.env.JARVIS_OPEN_APP_ALLOWLIST = "Safari,Notes";
+    process.env.JARVIS_OPEN_APP_DRY_RUN = "true";
+    delete process.env.JARVIS_OPEN_APP_CONFIRM_TOKEN;
+
+    res = await fetch(`http://127.0.0.1:${port}/api/personal/open-app`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ app: "Calculator" })
+    });
+    body = await res.json();
+    assert.equal(res.status, 403);
+    assert.equal(body.ok, false);
+
+    res = await fetch(`http://127.0.0.1:${port}/api/personal/open-app`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ app: "safari" })
+    });
+    body = await res.json();
+    assert.equal(res.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.app, "Safari");
+
+    process.env.JARVIS_OPEN_APP_CONFIRM_TOKEN = "OPEN_SECRET";
+    res = await fetch(`http://127.0.0.1:${port}/api/personal/open-app`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ app: "Notes" })
+    });
+    body = await res.json();
+    assert.equal(res.status, 403);
+
+    res = await fetch(`http://127.0.0.1:${port}/api/personal/open-app`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ app: "Notes", confirmToken: "OPEN_SECRET" })
+    });
+    body = await res.json();
+    assert.equal(res.status, 200);
+    assert.equal(body.ok, true);
+  } finally {
+    await close(server);
+    if (prevAllow === undefined) delete process.env.JARVIS_OPEN_APP_ALLOWLIST;
+    else process.env.JARVIS_OPEN_APP_ALLOWLIST = prevAllow;
+    if (prevDry === undefined) delete process.env.JARVIS_OPEN_APP_DRY_RUN;
+    else process.env.JARVIS_OPEN_APP_DRY_RUN = prevDry;
+    if (prevConfirm === undefined) delete process.env.JARVIS_OPEN_APP_CONFIRM_TOKEN;
+    else process.env.JARVIS_OPEN_APP_CONFIRM_TOKEN = prevConfirm;
   }
 });

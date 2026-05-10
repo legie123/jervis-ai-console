@@ -14,6 +14,7 @@ import { handleSecurityRoutes } from "./routes/security-routes.js";
 import { handleCatalogRoutes } from "./routes/catalog-routes.js";
 import { handleMissionWhatsAppRoutes } from "./routes/mission-whatsapp-routes.js";
 import { handleSystemRoutes } from "./routes/system-routes.js";
+import { handlePersonalRoutes } from "./routes/personal-routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../../..");
@@ -244,6 +245,7 @@ export function createHttpServer({
       if (await handleSecurityRoutes(routeContext)) return;
       if (await handleCatalogRoutes(routeContext)) return;
       if (await handleMissionWhatsAppRoutes(routeContext)) return;
+      if (await handlePersonalRoutes(routeContext)) return;
       if (await handleSystemRoutes(routeContext)) return;
 
       if (req.method === "GET") {

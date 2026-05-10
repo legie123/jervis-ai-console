@@ -28,6 +28,7 @@ const required = [
   "apps/operator/src/routes/catalog-routes.js",
   "apps/operator/src/routes/mission-whatsapp-routes.js",
   "apps/operator/src/routes/system-routes.js",
+  "apps/operator/src/routes/personal-routes.js",
   "apps/operator/src/security/path-guard.js",
   "apps/operator/src/security/confirmation-tokens.js",
   "apps/operator/src/security/emergency-stop.js",
