@@ -5,6 +5,16 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+**2026-05-10 [cursor]:** `cursor/smart-copilot-slice` — contextual copilot hints (`getCopilotSnapshot` + `resolveCopilotHint`: adapters/inbox/Desk scratch); PR ↔ `JARVIS_PREMIUM_PROGRAM.md` Faza 6 smart slice.
+
+## Sprint (2026-05-11, [cursor]) — PR #11 verify + nightly loop doc risk
+
+- **Remote (`legie123/jervis-ai-console`):** `gh pr checks 11` → **pass** on both **`build-test`** jobs; **`gh pr merge 11`** → **already merged** (squash), merge **`50b9a68c40e0675cb0acde3d498323c8496b6f0b`** · mergedAt **2026-05-10T02:37:27Z**.
+- **Local repo:** **`main`** pulled (`origin/main`). **`command-center/`:** **`npm test` 106** pass · **`npm run build`** OK.
+- **Doc delta:** **`command-center/docs/NIGHTLY_RUNNER.md`** — explicit **sleep / suspend** caveat for **`NIGHTLY_LOOP_HOURS`** + **`NIGHTLY_LOOP_INTERVAL_SEC`** loops (**`scripts/nightly-local.sh`** already on **`main`**).
+
+
+
 **Milestone 2026-05-10 [cursor]:** PR **#11** merged to **`main`**; `nightly-local.sh` gains optional **`NIGHTLY_LOOP_HOURS` / `NIGHTLY_LOOP_INTERVAL_SEC`** (hourly `npm test` in-window); **`JARVIS_PREMIUM_PROGRAM.md`** links [`command-center/docs/NIGHTLY_RUNNER.md`](../command-center/docs/NIGHTLY_RUNNER.md); **`npm test`** **106**/106 CC before push.
 
 > **Nightly runner:** Scheduled GitHub workflow + local `command-center/scripts/nightly-local.sh` → [`command-center/docs/NIGHTLY_RUNNER.md`](../command-center/docs/NIGHTLY_RUNNER.md).

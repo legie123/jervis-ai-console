@@ -56,6 +56,8 @@ Fast dry check (decimal hours + shorter interval):
 NIGHTLY_LOOP_HOURS=0.05 NIGHTLY_LOOP_INTERVAL_SEC=30 command-center/scripts/nightly-local.sh
 ```
 
+**Risk (local loops):** **Laptop sleep** (or suspend) **freezes wall-clock pacing** — `sleep` and the scheduling loop **pause**, so **hourly `npm test` runs can be skipped or finish much later than the nominal window.** For unattended overnight loops, disable sleep / run under **`caffeinate`** (example: `caffeinate -dimsu command-center/scripts/nightly-local.sh ...`) while the terminal stays awake.
+
 ## Optional hook (`NIGHTLY_AI_HOOK`) — default off
 
 To chain **your own** script after a green build (e.g. a **`codex`** or **`claude`** CLI — **not** shipped here; wire it yourself):
