@@ -47,10 +47,6 @@ Un singur **Command Center** (`127.0.0.1:4317`) ca suprafață principală; **Vi
 
 Desk rail (`section-desk`) + voice intents **`desk_*`**: Notes / priorities în **`localStorage`** (`jarvis.personal.*`); **`deschide`/`open`** trece prin **`POST /api/personal/open-app`** cu **`JARVIS_OPEN_APP_ALLOWLIST`** (bridge macOS din operator, nu din sandbox-ul browserului). Pulse Ruflo pe Desk și inbox obligatoriu **Ruflo + Hermes + GoodMood** rămân sursa pentru agentic workflows. Document detaliat: **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**.
 
-##### Ruflo agents (operational note)
-
-Coordination for **named Ruflo / Claude Code agents** stays **out of band** from the browser: use the **swarm + `SendMessage`-first** pattern described in project **`CLAUDE.md`** (pipeline: researcher → architect → coder → tester, etc.). **`npx @claude-flow/cli`** is only appropriate with a **version you trust**; do not treat copy-paste installs as audited infrastructure. Inbox rows appear when those workflows **write audit events** whose `source` / `action` fields match operator **`adapterMatchers`** for `ruflo` (e.g. substrings `ruflo`, `swarm`, `claude_flow`).
-
 ## Metrici de succes
 
 | Metric | Țintă |
@@ -71,6 +67,20 @@ Coordination for **named Ruflo / Claude Code agents** stays **out of band** from
 2. Faza 3 (T-005): plan incremental React — handoff Codex.
 3. Handoff în `BRAIN/HANDOFF_CURRENT.md` după fiecare sesiune.
 
+### Workflow Ruflo (obligatoriu în inbox)
+
+- **Audit tagging:** evenimentele care trebuie să apară în **`/api/ruflo/feed`** și în inbox trebuie să lovească matcher-ele din operator (`ruflo`, `swarm`, `claude_flow` în sursă/acțiune). La fel, Hermes (`hermes`, `handoff`, `dispatcher`) și GoodMood (`good_mood`, `coach`, `mood`) — vezi `command-center/config/.env.example` și `apps/web/src/services/collaboration-feeds.js` (`MANDATORY_ADAPTER_KEYS`).
+- **CLI + agenți named:** în medii Claude Code / stack Ruflo, folosește **`npx @claude-flow/cli@latest`** și pattern-ul **SendMessage-first** (Lead ↔ cercetător ↔ architect ↔ coder ↔ tester), nu polling de stare partajată. Referință: **`CLAUDE.md` la root-ul repo-ului Cursor / user config** (dacă lipsește din workspace, e același contract documentat în tooling-ul local). Exemplu minimal:
+
+```javascript
+// Toate agenții într-un singur mesaj; fiecare știe cui trimite SendMessage la pasul următor
+Agent({ prompt: "… SendMessage findings to 'architect'.", subagent_type: "researcher", name: "researcher", run_in_background: true })
+Agent({ prompt: "Wait for 'researcher'. … SendMessage to 'coder'.", subagent_type: "system-architect", name: "architect", run_in_background: true })
+SendMessage({ to: "researcher", summary: "Start", message: "[context]" })
+```
+
+- **Obsidian:** set recomandat `JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood` + `OBSIDIAN_VAULT_PATH`; detalii în **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**.
+
 ---
 
 ## Execuție către 100% (definiție + status)
@@ -88,6 +98,8 @@ Coordination for **named Ruflo / Claude Code agents** stays **out of band** from
 | **6** | Voice + LaunchAgent + scheduler verificate | ~20% | Wake word, legare supervisor, teste dispozitiv; `jervis-*.mjs` = owner Claude |
 
 **Țintă realistă:** 100% pe **Faze 0–2 + porțiuni 5** poate fi atinsă în **câteva iterății** cu backlog prioritar; **Faza 3–4 + 6 complet** depinde de decizii de produs și timp de echipă.
+
+**Footnote (sesiune integrare / desk):** livrările „premium **100%**” pentru **fazele 3–6** (React T-005, convergență repo, voice/LaunchAgent complet, etc.) rămân **backlog** — o sesiune tip **merge desk + env/docs** nu închide acele gate-uri.
 
 ---
 

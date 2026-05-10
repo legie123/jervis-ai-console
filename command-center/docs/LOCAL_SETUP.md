@@ -12,21 +12,6 @@ Status: PHASE 0 DOCS ONLY.
 
 Local runtime implemented.
 
-## Obsidian + Ruflo recommended stack
-
-For a **full Command Center picture** (vault paths, Captain's Log, unified inbox, Desk pulse strip, Hermes handoffs, GoodMood), treat **Obsidian** + **Ruflo-class agents** as the default themes:
-
-1. Copy `config/.env.example` → **`command-center/.env`** (gitignored). Never paste tokens, WhatsApp secrets, or confirm codes into the repo.
-2. Set at least:
-   - **`JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood`**  
-     (or enable each `JARVIS_ADAPTER_*_ENABLED=true` individually)
-   - **`JARVIS_ADAPTER_RUFLO_ENABLED=true`** and **`JARVIS_ADAPTER_HERMES_ENABLED=true`**
-   - **`OBSIDIAN_VAULT_PATH=/absolute/path/to/your/vault`**
-   - **`OBSIDIAN_WRITE_ENABLED=true`** when you want sync scripts / API writes (see [Obsidian Sync](#obsidian-sync))
-3. **Audit tagging:** adapter feeds scan `JARVIS_AUDIT_LOG` JSONL and match rows when `source` or `action` (case-insensitive) contains the keywords the operator maps per feed — e.g. Ruflo inbox needs **`ruflo`**, **`swarm`**, or **`claude_flow`** inside those fields; Hermes needs **`hermes`**, **`dispatcher`**, or **`handoff`**; GoodMood needs **`good_mood`**, **`goodmood`**, **`coach`**, or **`mood`**; Obsidian needs **`obsidian`**. Exact list lives in **`adapterMatchers()`** in `apps/operator/src/http.js`.
-
-**macOS Personal Desk / `open -a`:** the browser cannot launch apps; the operator can, but Apple **TCC** (Privacy & Security) may block automation until you grant **Accessibility** and **Automation** to **Terminal.app** or **Cursor** as documented in **[MAC_OPERATOR_SETUP.md](./MAC_OPERATOR_SETUP.md)** (honest limits — not “full access” in the sense of bypassing TCC).
-
 ## Run
 
 ```bash
@@ -99,20 +84,26 @@ npm run build
 npm run start:web
 ```
 
-## Adapter feeds — Obsidian, Ruflo, GoodMood (required for full operator picture)
+## Adapter feeds — Obsidian, Ruflo, Hermes, GoodMood (recommended stack)
 
 The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/feed`, `/api/ruflo/feed`, `/api/good-mood/feed`, `/api/hermes/feed`). The web UI’s **live unified inbox** and collaboration layer expect these names; wire them on every serious install.
+
+**Recommended** `JARVIS_ADAPTERS_ENABLED` order (Obsidian vault bridge + Ruflo agents + Hermes handoffs + GoodMood): `obsidian,ruflo,hermes,good_mood`. Full Personal Desk behavior is documented in [`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`](../../cursor%20Jarvis%20ai/plans/JARVIS_PERSONAL_AGENT_DECK.md).
 
 1. **Enable adapters** (pick one style):
 
    ```bash
-   export JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,good_mood,hermes
+   export JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood
    ```
 
-   or set `JARVIS_ADAPTER_OBSIDIAN_ENABLED=true`, `JARVIS_ADAPTER_RUFLO_ENABLED=true`, `JARVIS_ADAPTER_GOOD_MOOD_ENABLED=true` (and Hermes if you use dispatch handoffs).
+   or set `JARVIS_ADAPTER_OBSIDIAN_ENABLED=true`, `JARVIS_ADAPTER_RUFLO_ENABLED=true`, `JARVIS_ADAPTER_HERMES_ENABLED=true`, `JARVIS_ADAPTER_GOOD_MOOD_ENABLED=true`.
 
-2. **Obsidian (writes + sync API)** still needs a vault path and write flag (see [Obsidian Sync](#obsidian-sync) below). **Ruflo**, **Hermes**, and **GoodMood:** the web UI **always** calls `/api/ruflo/feed`, `/api/hermes/feed`, and `/api/good-mood/feed` on inbox refresh. Enable the matching `JARVIS_ADAPTER_*` flags and emit audit rows whose **`source` or `action`** strings include the **`adapterMatchers`** keywords above so those channels show live rows instead of only fallback cards.
-3. **Personal Desk**: scratch notes + priority list persist in **`localStorage`** (`jarvis.personal.scratch` / `jarvis.personal.priorities`). Native app launch flows through **`POST /api/personal/open-app`**; set **`JARVIS_OPEN_APP_ALLOWLIST`** on the macOS operator host (optional confirm token).
+2. **Obsidian (writes + sync API)** needs `OBSIDIAN_VAULT_PATH`, plus `OBSIDIAN_WRITE_ENABLED` / `OBSIDIAN_SYNC_CONFIRM_TOKEN` when you use sync or vault writes (see [Obsidian Sync](#obsidian-sync) below). **Ruflo**, **Hermes**, and **GoodMood:** the web UI **always** calls `/api/ruflo/feed`, `/api/hermes/feed`, and `/api/good-mood/feed` on inbox refresh (`collaboration-feeds.js` injects these even if the registry omits them). Enable the matching `JARVIS_ADAPTER_*` flags and emit audit rows tagged `ruflo` / `swarm` / `claude_flow`, `hermes` / `dispatcher` / `handoff`, or `good_mood` / `coach` / `mood` so those channels show live rows instead of only fallback cards.
+3. **Personal Desk**: scratch notes + priority list persist in **`localStorage`** (`jarvis.personal.scratch` / `jarvis.personal.priorities`). Native app launch flows through **`POST /api/personal/open-app`**; on macOS set **`JARVIS_OPEN_APP_ALLOWLIST`** (and optional confirm token). **Automation / app launch does not bypass macOS privacy (TCC):** the user must grant **Accessibility** (and related permissions) in **System Settings → Privacy & Security** for the terminal or Node process that runs the operator—see [Mac env bundle](../scripts/README-mac.md).
+
+## macOS operator env (quick link)
+
+Thorough defaults for `JARVIS_OPEN_APP_*`, bind host, and Calendar/Accessibility notes: source [`mac-env-example.sh`](../scripts/mac-env-example.sh) as documented in [`README-mac.md`](../scripts/README-mac.md) (nothing is written to `~/.zshrc` automatically).
 
 ## Scheduler
 

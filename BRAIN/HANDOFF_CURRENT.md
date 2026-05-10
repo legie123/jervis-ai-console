@@ -5,11 +5,11 @@ last_session_end: 2026-05-10T23:59:59Z
 next_recommended_agent: hermes
 ---
 
-## Last session summary (2026-05-10, [cursor]) — Main merge batch: Obsidian/Ruflo docs + Mac TCC
+## Last session summary (2026-05-10, [cursor]) — Desk merge verification + Obsidian/Ruflo env + Mac bundle
 
-**DONE:** **`main`** fast-forwarded to **`cursor/personal-agent-deck-v1`** (already includes **`cursor/futuristic-ui-polish`**; second merge noop). **`command-center/config/.env.example`**: block „Obsidian + Ruflo recommended stack”, `JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood`, clarificare **`adapterMatchers`** / audit keywords. **`docs/LOCAL_SETUP.md`**: secțiune stivă + legătură **MAC_OPERATOR_SETUP**. Nou **`docs/MAC_OPERATOR_SETUP.md`**: Accessibility + Automation, env open-app, limite TCC (fără „full access” magic), copy-paste shell (fără modificare automată `~/.zshrc`). **`JARVIS_PREMIUM_PROGRAM.md`**: subsecțiune operațională Ruflo + SendMessage; **`JARVIS_PERSONAL_AGENT_DECK.md`**: pointer `adapterMatchers`. Verificare: **`npm test`**, **`npm run build`**, **LHCI** (align CI).
+**DONE:** `git fetch` — **`main` == `origin/main`** (`d8d6a71`); **`cursor/personal-agent-deck-v1`** is **ancestor of `main`** (deck already integrated; no merge required). **`command-center/config/.env.example`** + **`command-center/docs/LOCAL_SETUP.md`:** recommended `JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood`, `OBSIDIAN_VAULT_PATH` / write flags, cross-link **`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`**, TCC/Accessibility note + links to **`command-center/scripts/README-mac.md`**. **`collaboration-feeds.js`:** verified **`MANDATORY_ADAPTER_KEYS`** = ruflo, hermes, good_mood (unchanged intent). **`JARVIS_PREMIUM_PROGRAM.md`:** new **Workflow Ruflo** (audit tagging, `npx @claude-flow/cli` + SendMessage pattern, CLAUDE.md reference); **footnote:** premium **100% phases 3–6** remain **backlog** — this session = integration/env docs. **New:** **`command-center/scripts/mac-env-example.sh`**, **`command-center/scripts/README-mac.md`** (source one-liner; no `~/.zshrc` auto-write). **`npm test`** **106/106**, **`npm run build`** OK.
 
-**NEXT:** Push **`main`** (done); Hermes T-004; Faza 3 React incremental; „100% premium” rămâne pe închidere pe faze (vezi plan).
+**NEXT:** Hermes PR/sign-off cadence; optional copy `CLAUDE.md` SendMessage block into repo if you want grep-able docs; Faza 3+ backlog unchanged.
 
 ---
 
