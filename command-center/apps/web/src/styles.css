@@ -1795,6 +1795,19 @@ kbd {
   color: var(--text-muted);
 }
 
+.first-run-meta {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-subtle, var(--text-muted));
+  opacity: 0.92;
+}
+
+.first-run-meta code {
+  font-size: 11px;
+}
+
 .first-run-banner-actions {
   display: flex;
   flex-wrap: wrap;

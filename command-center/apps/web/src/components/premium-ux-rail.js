@@ -27,6 +27,7 @@ export function mountPremiumUxRail({ onboardingHost, copilotHost, onSpotlightTou
             Unified inbox always syncs <strong>Ruflo</strong>, <strong>Hermes</strong>, and <strong>GoodMood</strong>
             (<code>/api/ruflo/feed</code>, <code>/api/hermes/feed</code>, <code>/api/good-mood/feed</code>) alongside other adapters.
             Mission plans stream below the orb when boot is idle.
+            <span class="first-run-meta">⌘6 Desk · nightly verify: see <code>docs/NIGHTLY_RUNNER.md</code>.</span>
           </p>
         </div>
         <div class="first-run-banner-actions">

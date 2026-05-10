@@ -92,6 +92,8 @@ The operator exposes **opt-in** adapter feeds (`/api/adapters`, `/api/obsidian/f
 
 **Recommended** `JARVIS_ADAPTERS_ENABLED` order (Obsidian vault bridge + Ruflo agents + Hermes handoffs + GoodMood): `obsidian,ruflo,hermes,good_mood`. Full Personal Desk behavior is documented in [`cursor Jarvis ai/plans/JARVIS_PERSONAL_AGENT_DECK.md`](../../cursor%20Jarvis%20ai/plans/JARVIS_PERSONAL_AGENT_DECK.md).
 
+**Smart copilot (PR #12 slice):** The dashboard contextual hint derives `adapterEnabledCount` from the operator registry (`GET /api/adapters`). If that endpoint is down, slow, or returns no enabled adapters, the count stays at zero and hints fall back to generic copy—start the operator with the adapter env vars below (and matching `JARVIS_ADAPTER_*` toggles) so `/api/adapters` is healthy before interpreting copilot text as a signal of live integrations.
+
 1. **Enable adapters** (pick one style):
 
    ```bash

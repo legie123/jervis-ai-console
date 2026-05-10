@@ -5,6 +5,8 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+**2026-05-10 [cursor]:** PR **#10** squash-merged (`d18baf58` evening swarm runbook); `JARVIS_PREMIUM_PROGRAM` Next actions + first-run ⌘6/nightly hint + `LOCAL_SETUP` copilot `/api/adapters`; CC **110** tests · `npm run build` OK.
+
 **2026-05-11 [cursor]:** continuous merge `origin/cursor/smart-copilot-slice` fast-forward onto `main` @ `3ff653b`; no matching open PR (`gh pr list` smart-copilot); CC `npm test` **110**/110 · `npm run build` OK.
 
 **2026-05-10 [cursor]:** `cursor/smart-copilot-slice` — contextual copilot hints (`getCopilotSnapshot` + `resolveCopilotHint`: adapters/inbox/Desk scratch); PR ↔ `JARVIS_PREMIUM_PROGRAM.md` Faza 6 smart slice.
