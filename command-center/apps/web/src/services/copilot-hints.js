@@ -8,12 +8,39 @@ const IDLE_WORKSPACE_NUDGE = Object.freeze({
     "Desk — notes & priorities stay on this Mac (browser storage); voice: note … / prioritate … / open Safari; Ruflo pulse above."
 });
 
+function contextualSignalPrefix(snapshot) {
+  const {
+    healthKnown = false,
+    adapterEnabledCount,
+    unifiedInboxEmpty = false,
+    deskNoteEmpty = true,
+    activeSectionId = ""
+  } = snapshot;
+
+  if (!healthKnown) return "";
+
+  if (typeof adapterEnabledCount === "number" && adapterEnabledCount === 0) {
+    return "No collaboration adapters enabled — set JARVIS_ADAPTERS_ENABLED=obsidian,ruflo,hermes,good_mood (or per-adapter JARVIS_ADAPTER_*_ENABLED) in operator `.env`. ";
+  }
+
+  if (typeof adapterEnabledCount === "number" && adapterEnabledCount > 0 && unifiedInboxEmpty) {
+    return "Unified inbox is quiet — emit tagged audit rows (ruflo / hermes / good_mood) or sync Obsidian; Desk scratch works offline too. ";
+  }
+
+  if (activeSectionId === "section-desk" && deskNoteEmpty) {
+    return "Desk scratch is empty — dictate “note …” or type a line below. ";
+  }
+
+  return "";
+}
+
 function idleShortcutTip(snapshot) {
+  const prefix = contextualSignalPrefix(snapshot);
   const base =
     "Tip: ⌘K palette · Voice orb · Unified inbox (Ruflo + Hermes + GoodMood feeds always wired) · ⌘. emergency · ? shortcuts · ⌘, settings.";
   const sid = snapshot.activeSectionId;
   const extra = sid && IDLE_WORKSPACE_NUDGE[sid] ? ` ${IDLE_WORKSPACE_NUDGE[sid]}` : "";
-  return `${base}${extra}`;
+  return `${prefix}${base}${extra}`;
 }
 
 /**
@@ -25,8 +52,7 @@ export function resolveCopilotHint(snapshot = {}) {
     bootOffline = false,
     emergencyActive = false,
     missionPreview = "",
-    planStatus = "",
-    activeSectionId = ""
+    planStatus = ""
   } = snapshot;
 
   if (emergencyActive) {
@@ -59,5 +85,5 @@ export function resolveCopilotHint(snapshot = {}) {
     return "Voice channel active — use orb commands or dictate replies; Esc closes overlays.";
   }
 
-  return idleShortcutTip({ ...snapshot, activeSectionId });
+  return idleShortcutTip(snapshot);
 }

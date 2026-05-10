@@ -456,6 +456,9 @@ export function mountLiveUnifiedInbox(container, options = {}) {
     getItems() {
       return state.items.slice();
     },
+    getInboxSyncMeta() {
+      return { lastUpdatedMs: state.lastUpdatedMs, itemCount: state.items.length };
+    },
     getSelectedItem() {
       return selectedItem();
     },

@@ -28,6 +28,7 @@ import {
 import { createShellNavigation } from "./services/shell-navigation.js";
 import { createMissionStateStream, mergeBootAndMissionFsm } from "./services/mission-state-stream.js";
 import { resolveApiUrl } from "./services/api-base.js";
+import { isDeskNoteEmpty } from "./services/personal-desk-store.js";
 
 const statusLine = document.querySelector("#statusLine");
 const missionForm = document.querySelector("#missionForm");
@@ -79,13 +80,26 @@ let activeSectionId = "section-mission";
 const shieldsStripCtl = mountShieldsStrip(document.querySelector("#mountShieldsStrip"));
 
 function getCopilotSnapshot() {
+  const healthKnown = Boolean(lastHealth);
+  const adapters = Array.isArray(lastHealth?.adapters) ? lastHealth.adapters : null;
+  const adapterEnabledCount = adapters ? adapters.filter((a) => a?.enabled).length : undefined;
+  const toolsCount = Array.isArray(lastHealth?.tools) ? lastHealth.tools.length : 0;
+  const inboxMeta = unifiedInboxCtl?.getInboxSyncMeta?.() ?? { lastUpdatedMs: 0, itemCount: 0 };
+  const unifiedInboxSynced = inboxMeta.lastUpdatedMs > 0;
+  const unifiedInboxEmpty = unifiedInboxSynced && inboxMeta.itemCount === 0;
+
   return {
     effectiveFsm: effectiveFsmState(),
     bootOffline: bootProbeOffline,
     emergencyActive: Boolean(lastHealth?.security?.emergency?.active),
     missionPreview: missionCopilotMeta.preview || "",
     planStatus: missionCopilotMeta.planStatus || "",
-    activeSectionId
+    activeSectionId,
+    healthKnown,
+    adapterEnabledCount,
+    toolsCount,
+    unifiedInboxEmpty,
+    deskNoteEmpty: isDeskNoteEmpty()
   };
 }
 
