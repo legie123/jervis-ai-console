@@ -5,6 +5,8 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+> **Nightly runner:** Scheduled GitHub workflow + local `command-center/scripts/nightly-local.sh` → [`command-center/docs/NIGHTLY_RUNNER.md`](../command-center/docs/NIGHTLY_RUNNER.md).
+
 ## Autonomous milestone (2026-05-10, [cursor]) — continuity FF + smoke
 
 - **`origin/cursor/ruflo-obsidian-continuity` → `main`:** fast-forward merge locally; `git merge-base --is-ancestor origin/cursor/ruflo-obsidian-continuity main` → OK.

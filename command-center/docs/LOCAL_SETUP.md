@@ -52,6 +52,8 @@ npx --yes @lhci/cli@0.14.0 autorun --config=./lighthouserc.json
 
 Eșuează dacă scorul categoriei **accessibility** scade sub **0.9** (90).
 
+Scheduled **GitHub nightly** + **Mac LaunchAgent** + optional post-verify hook (no default LLM): [NIGHTLY_RUNNER.md](./NIGHTLY_RUNNER.md).
+
 ## Local UI — one URL (recommended)
 
 **Canonical dev URL (UI always up to date, HMR):** **`http://127.0.0.1:5173`**
