@@ -18,6 +18,7 @@ export default defineConfig({
     }
   },
   server: {
+    host: process.env.VITE_DEV_HOST || "127.0.0.1",
     port: Number(process.env.VITE_DEV_PORT || 5173),
     strictPort: false,
     proxy: {
