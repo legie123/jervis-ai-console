@@ -42,6 +42,14 @@ test("copilot hints append workspace nudge on standby", () => {
     activeSectionId: "section-graph"
   });
   assert.match(graph, /Graph — search/);
+
+  const desk = resolveCopilotHint({
+    effectiveFsm: "STANDBY",
+    bootOffline: false,
+    activeSectionId: "section-desk"
+  });
+  assert.match(desk, /Desk — notes/i);
+  assert.match(desk, /Ruflo pulse/i);
 });
 
 test("copilot hints summarize ready mission with preview", () => {

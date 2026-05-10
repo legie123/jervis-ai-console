@@ -5,6 +5,12 @@ last_session_end: 2026-05-11T06:00:00Z
 next_recommended_agent: hermes
 ---
 
+## Autonomous milestone (2026-05-10, [cursor]) — continuity FF + smoke
+
+- **`origin/cursor/ruflo-obsidian-continuity` → `main`:** fast-forward merge locally; `git merge-base --is-ancestor origin/cursor/ruflo-obsidian-continuity main` → OK.
+- **command-center:** `npm test` **106/106** · `npm run build` OK (HTML hint only; LHCI skipped).
+- **This push:** Desk panel shows copy-paste repo path to `JARVIS_RUFLO_OBSIDIAN_CONTINUITY.md`; copilot idle nudge for **`section-desk`** (notes/voice/Ruflo).
+
 ## Continuity (Ruflo + Obsidian)
 
 **Pattern:** Ruflo named agents + **SendMessage-first** handoffs carry tasks; **Obsidian** (`Jarvis/NEXT.md` etc.) is the operator second brain. **Resume order:** this file → **`Jarvis/NEXT.md`** → **`git status`**.

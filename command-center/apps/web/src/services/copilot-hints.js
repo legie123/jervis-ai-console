@@ -3,7 +3,9 @@ const IDLE_WORKSPACE_NUDGE = Object.freeze({
   "section-ops": "Ops — drafts, inbox, gated send; Ruflo Agents feed is always polled for swarm telemetry.",
   "section-bridge": "Bridge — live posture & payloads.",
   "section-system": "System — scheduler & backups.",
-  "section-graph": "Graph — search nodes & export map."
+  "section-graph": "Graph — search nodes & export map.",
+  "section-desk":
+    "Desk — notes & priorities stay on this Mac (browser storage); voice: note … / prioritate … / open Safari; Ruflo pulse above."
 });
 
 function idleShortcutTip(snapshot) {
